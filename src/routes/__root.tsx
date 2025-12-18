@@ -54,8 +54,8 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body>
-        <Header />
+      <body className='min-h-screen bg-linear-to-b from-slate-900 via-slate-800 to-slate-900 p-4'>
+        {/* <Header /> */}
         {children}
         <TanStackDevtools
           config={{
