@@ -29,7 +29,6 @@ RUN npm install -g pnpm@latest
 # Copy built application
 COPY --from=builder /app/.output ./.output
 COPY --from=builder /app/package.json ./
-COPY --from=builder /app/courses.json ./courses.json
 
 # Expose port
 EXPOSE 3000
