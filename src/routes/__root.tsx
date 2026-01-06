@@ -6,8 +6,6 @@ import {
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 
-import Header from '../components/Header'
-
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 
 import appCss from '../styles.css?url'
@@ -54,7 +52,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body className='min-h-screen bg-linear-to-b from-slate-900 via-slate-800 to-slate-900 p-4'>
+      <body className='h-screen bg-linear-to-b from-slate-900 via-slate-800 to-slate-900 p-4'>
         {/* <Header /> */}
         {children}
         <TanStackDevtools
