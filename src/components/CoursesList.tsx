@@ -21,7 +21,7 @@ export const CoursesList: FC<CoursesListProps> = ({
   const [filteredCourses, setFilteredCourses] = useState<Course[]>(courses)
   const [visibleCount, setVisibleCount] = useState(50)
   const deferredFilter = useDeferredValue(filter)
-  const listRef = useRef<HTMLUListElement>(null)
+  const listRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!deferredFilter) {
@@ -140,7 +140,7 @@ export const CoursesList: FC<CoursesListProps> = ({
           </button>
         </div>
       </div>
-      <ul ref={listRef} className="space-y-2 overflow-y-auto flex-1 min-h-0">
+      <div ref={listRef} className="space-y-2 overflow-y-auto flex-1 min-h-0">
         {visibleCourses.map((course) => (
           <CourseItem
             key={course.crn}
@@ -152,7 +152,7 @@ export const CoursesList: FC<CoursesListProps> = ({
         {visibleCount < filteredCourses.length && (
           <li className="text-center text-white/50 py-4">Scroll for more...</li>
         )}
-      </ul>
+      </div>
     </div>
   )
 }
