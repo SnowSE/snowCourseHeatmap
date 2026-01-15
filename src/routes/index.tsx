@@ -52,6 +52,18 @@ function App() {
     })
   }
 
+  const selectAllCourses = (crns: string[]) => {
+    setSelectedCourseIds((prev) => {
+      const next = new Set(prev)
+      crns.forEach((crn) => next.add(crn))
+      return next
+    })
+  }
+
+  const clearAllCourses = () => {
+    setSelectedCourseIds(new Set())
+  }
+
   return (
     <div className="w-full text-blue-100 flex flex-col  h-full">
       <div className="flex justify-center">
@@ -67,6 +79,8 @@ function App() {
           courses={courses}
           selectedCourseIds={selectedCourseIds}
           onToggleCourse={toggleCourseSelection}
+          onSelectAll={selectAllCourses}
+          onClearAll={clearAllCourses}
         />
         <div className="w-425 bg-slate-950/50 p-4 rounded-lg m-8 overflow-auto">
           <CourseWeekHeatmap courses={coursesForHeatmap} />

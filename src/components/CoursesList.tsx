@@ -6,12 +6,16 @@ interface CoursesListProps {
   courses: Course[]
   selectedCourseIds: Set<string>
   onToggleCourse: (crn: string) => void
+  onSelectAll?: (crns: string[]) => void
+  onClearAll?: () => void
 }
 
 export const CoursesList: FC<CoursesListProps> = ({
   courses,
   selectedCourseIds,
   onToggleCourse,
+  onSelectAll,
+  onClearAll,
 }) => {
   const [filter, setFilter] = useState('')
   const [filteredCourses, setFilteredCourses] = useState<Course[]>(courses)
@@ -72,6 +76,31 @@ export const CoursesList: FC<CoursesListProps> = ({
 
   const visibleCourses = filteredCourses.slice(0, visibleCount)
 
+  const handleSelectAll = () => {
+    const crnsToSelect = filteredCourses.map((course) => course.crn)
+    if (onSelectAll) {
+      onSelectAll(crnsToSelect)
+    } else {
+      // Fallback: toggle each course individually
+      crnsToSelect.forEach((crn) => {
+        if (!selectedCourseIds.has(crn)) {
+          onToggleCourse(crn)
+        }
+      })
+    }
+  }
+
+  const handleClearAll = () => {
+    if (onClearAll) {
+      onClearAll()
+    } else {
+      // Fallback: toggle each selected course
+      selectedCourseIds.forEach((crn) => {
+        onToggleCourse(crn)
+      })
+    }
+  }
+
   if (courses.length === 0) {
     return null
   }
@@ -94,6 +123,22 @@ export const CoursesList: FC<CoursesListProps> = ({
           placeholder="Search by multiple terms (e.g., MATH Smith 101)..."
           className="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-white placeholder-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
         />
+        <div className="flex gap-2">
+          <button
+            onClick={handleSelectAll}
+            disabled={filteredCourses.length === 0}
+            className="flex-1 rounded-lg border border-white/20 bg-blue-500/20 px-4 py-2 text-white hover:bg-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            Select ({filteredCourses.length})
+          </button>
+          <button
+            onClick={handleClearAll}
+            disabled={selectedCourseIds.size === 0}
+            className="flex-1 rounded-lg border border-white/20 bg-red-500/20 px-4 py-2 text-white hover:bg-red-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            Clear ({selectedCourseIds.size})
+          </button>
+        </div>
       </div>
       <ul ref={listRef} className="space-y-2 overflow-y-auto flex-1 min-h-0">
         {visibleCourses.map((course) => (
