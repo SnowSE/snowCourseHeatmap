@@ -5,6 +5,14 @@ type DayOfWeek = 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday'
 type TimeSlot = string
 type WeekSchedule = Record<DayOfWeek, Record<TimeSlot, Course[]>>
 
+// Convert 24-hour time to 12-hour AM/PM format
+function formatTime12Hour(time24: string): string {
+  const [hour, minute] = time24.split(':').map(Number)
+  const period = hour >= 12 ? 'PM' : 'AM'
+  const displayHour = hour % 12 || 12
+  return `${displayHour}:${minute.toString().padStart(2, '0')} ${period}`
+}
+
 // Generate 5-minute intervals between start and end time
 function generateTimeSlots(startTime: string, endTime: string): TimeSlot[] {
   const [startHour, startMin] = startTime.split(':').map(Number)
@@ -113,7 +121,7 @@ export const DayHeatmap: FC<{
           }}
         >
           <div className="text-xs text-blue-300 font-semibold mb-2">
-            {hoveredSlot} - {day}
+            {formatTime12Hour(hoveredSlot)} - {day}
           </div>
           <ul className="space-y-1.5">
             {daySchedule[hoveredSlot].map((course, idx) => (
