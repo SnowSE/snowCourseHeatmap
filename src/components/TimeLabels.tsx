@@ -8,10 +8,16 @@ export const TimeLabels: FC<{
   const [startHour] = startTime.split(':').map(Number)
   const [endHour] = endTime.split(':').map(Number)
 
+  const formatTime = (hour: number, minute: number): string => {
+    const period = hour >= 12 ? 'PM' : 'AM'
+    const displayHour = hour % 12 || 12
+    return `${displayHour}:${minute.toString().padStart(2, '0')} ${period}`
+  }
+
   const hourLabels: string[] = []
   for (let hour = startHour; hour < endHour; hour++) {
-    hourLabels.push(`${hour.toString().padStart(2, '0')}:00`)
-    hourLabels.push(`${hour.toString().padStart(2, '0')}:30`)
+    hourLabels.push(formatTime(hour, 0))
+    hourLabels.push(formatTime(hour, 30))
   }
 
   // Each 5-minute slot in DayHeatmap, we have 6 slots per 30 minutes

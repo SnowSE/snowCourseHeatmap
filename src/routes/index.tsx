@@ -68,7 +68,7 @@ function App() {
           selectedCourseIds={selectedCourseIds}
           onToggleCourse={toggleCourseSelection}
         />
-        <div className="w-425 bg-slate-950/50 p-4 rounded-lg m-8">
+        <div className="w-425 bg-slate-950/50 p-4 rounded-lg m-8 overflow-auto">
           <CourseWeekHeatmap courses={coursesForHeatmap} />
         </div>
       </div>

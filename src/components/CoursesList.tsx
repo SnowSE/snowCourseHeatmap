@@ -21,7 +21,14 @@ export const CoursesList: FC<CoursesListProps> = ({
 
   useEffect(() => {
     if (!deferredFilter) {
-      setFilteredCourses(courses)
+      // When no filter, sort with selected courses first
+      const sorted = [...courses].sort((a, b) => {
+        const aSelected = selectedCourseIds.has(a.crn)
+        const bSelected = selectedCourseIds.has(b.crn)
+        if (aSelected === bSelected) return 0
+        return aSelected ? -1 : 1
+      })
+      setFilteredCourses(sorted)
       return
     }
 
@@ -45,7 +52,7 @@ export const CoursesList: FC<CoursesListProps> = ({
 
     setFilteredCourses(filtered)
     setVisibleCount(50) // Reset visible count when filter changes
-  }, [courses, deferredFilter])
+  }, [courses, deferredFilter, selectedCourseIds])
 
   useEffect(() => {
     const listElement = listRef.current
