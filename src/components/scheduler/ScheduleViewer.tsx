@@ -57,11 +57,11 @@ export const ScheduleViewer = () => {
           onToggleProfessor={toggleProfessor}
         />
       </div>
-      <div className='overflow-y-auto'>
+      <div className=" flex flex-wrap flex-1 overflow-y-auto">
         {Array.from(selectedProfessors).map((professor) => (
-          <Fragment key={professor}>
+          <div key={professor} className=" p-3">
             <ProfessorWeekDisplay professorName={professor} />
-          </Fragment>
+          </div>
         ))}
       </div>
     </div>

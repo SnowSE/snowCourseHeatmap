@@ -67,9 +67,9 @@ export const ClassesWeekDayComponent: FC<{
   }, [dayStartMinutes, dayEndMinutes, totalDayMinutes])
 
   return (
-    <div className="flex flex-col gap-2 flex-1">
+    <div className="flex flex-col gap-2 h-full">
       <h3 className="text-lg font-semibold text-blue-300 text-center">{day}</h3>
-      <div className="relative flex-1 min-h-150 border border-slate-600/50 rounded-lg bg-slate-900/30">
+      <div className="relative flex-1 min-h-0 border border-slate-600/50 rounded-lg bg-slate-900/30">
         {/* Time grid lines */}
         {timeGridLines.map((topPercent, idx) => (
           <div
@@ -79,31 +79,24 @@ export const ClassesWeekDayComponent: FC<{
           />
         ))}
 
-        {/* Meeting blocks */}
-        {meetingsWithPositions.length > 0 ? (
-          meetingsWithPositions.map((meeting, idx) => (
-            <div
-              key={`${meeting.crn}-${idx}`}
-              title={`${meeting.subjectCode} ${meeting.courseNumber} - ${meeting.courseName}\n${formatTime12Hour(meeting.start_time)} - ${formatTime12Hour(meeting.end_time)}`}
-              className="absolute left-0 right-0 mx-1 
-                         bg-slate-600 border border-blue-500/50 rounded p-1
-                         overflow-hidden cursor-pointer hover:bg-slate-500 transition-colors"
-              style={{
-                top: `${meeting.topPercent}%`,
-                height: `${meeting.heightPercent}%`,
-              }}
-            >
-              <div className="text-xs truncate">{meeting.courseName}</div>
-              <div className="text-xs">
-                {meeting.subjectCode} {meeting.courseNumber}
-              </div>
+        {meetingsWithPositions.map((meeting, idx) => (
+          <div
+            key={`${meeting.crn}-${idx}`}
+            title={`${meeting.subjectCode} ${meeting.courseNumber} - ${meeting.courseName}\n${formatTime12Hour(meeting.start_time)} - ${formatTime12Hour(meeting.end_time)}`}
+            className="absolute left-0 right-0 mx-1 
+                         bg-slate-700 border border-blue-800/10 rounded p-1
+                         overflow-hidden cursor-pointer hover:bg-slate-900 transition-colors"
+            style={{
+              top: `${meeting.topPercent}%`,
+              height: `${meeting.heightPercent}%`,
+            }}
+          >
+            <div className="text-xs truncate">{meeting.courseName}</div>
+            <div className="text-xs">
+              {meeting.subjectCode} {meeting.courseNumber}
             </div>
-          ))
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-white/40 text-sm">No classes</div>
           </div>
-        )}
+        ))}
       </div>
     </div>
   )

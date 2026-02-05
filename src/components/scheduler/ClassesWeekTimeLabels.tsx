@@ -16,11 +16,7 @@ const minutesToTime = (minutes: number): string => {
 export const ClassesWeekTimeLabels: FC<{
   startTime: string
   endTime: string
-}
-> = ({
-  startTime,
-  endTime,
-}) => {
+}> = ({ startTime, endTime }) => {
   const timeLabels = useMemo(() => {
     const startMinutes = timeToMinutes(startTime)
     const endMinutes = timeToMinutes(endTime)
@@ -41,11 +37,11 @@ export const ClassesWeekTimeLabels: FC<{
   }, [startTime, endTime])
 
   return (
-    <div className="flex flex-col gap-2 w-20 flex-shrink-0">
+    <div className="flex flex-col gap-2 w-13 shrink-0 h-full">
       <h3 className="text-lg font-semibold text-transparent text-center">
         Time
       </h3>
-      <div className="relative flex-1 min-h-150 pr-2">
+      <div className="relative flex-1 min-h-0 pr-2">
         {timeLabels.map((label, idx) => (
           <div
             key={idx}

@@ -56,15 +56,15 @@ export const ProfessorWeekDisplay: FC<{ professorName: string }> = ({
     [days, professorCourses],
   )
 
-  const start = "07:00"
-  const end = "17:00"
+  const start = '07:00'
+  const end = '17:00'
 
   return (
-    <div className="flex flex-col">
-      <h2 className="text-end font-bold">{professorName}</h2>
-      <div className="flex gap-3 flex-1 min-h-0">
+    <div className="flex flex-col bg-slate-950 rounded-lg border border-slate-600/50 p-1 py-3">
+      <h2 className="text-center font-bold">{professorName}</h2>
+      <div className="flex gap-3 h-125 ">
         <ClassesWeekTimeLabels startTime={start} endTime={end} />
-        <div className="grid grid-cols-5 gap-3 flex-1 min-h-0">
+        <div className="grid grid-cols-5 gap-3 flex-1 h-full">
           {days.map((day) => (
             <ClassesWeekDayComponent
               key={day}
