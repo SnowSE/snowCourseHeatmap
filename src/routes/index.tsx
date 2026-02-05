@@ -1,24 +1,16 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { createServerFn } from '@tanstack/react-start'
-import { useEffect, useState, useMemo, useDeferredValue } from 'react'
-import z from 'zod'
-import { CourseSchema, type Course } from '../schemas/courses'
+import { useState, useMemo, useDeferredValue } from 'react'
 import { RefreshCourses } from '../components/RefreshCourses'
 import { CoursesList } from '../components/CoursesList'
 import { CourseWeekHeatmap } from '@/components/CourseWeekHeatmap'
 import { Modal } from '@/components/Modal'
+import { useCourses } from '../hooks/useCourses'
 
 export const Route = createFileRoute('/')({ component: App })
 
-const getStoredCourses = createServerFn().handler(async () => {
-  const fs = await import('fs/promises')
-  const data = await fs.readFile('courses.json', 'utf-8')
-  const json = JSON.parse(data)
-  return z.array(CourseSchema).parse(json)
-})
-
 function App() {
-  const [courses, setCourses] = useState<Course[]>([])
+  const queryClient = Route.useRouteContext().queryClient
+  const { data: courses = [] } = useCourses()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedCourseIds, setSelectedCourseIds] = useState<Set<string>>(
     new Set(),
@@ -33,12 +25,6 @@ function App() {
         : courses.filter((course) => deferredSelectedIds.has(course.crn)),
     [courses, deferredSelectedIds],
   )
-
-  useEffect(() => {
-    getStoredCourses().then((data) => {
-      setCourses(data)
-    })
-  }, [])
 
   const toggleCourseSelection = (crn: string) => {
     setSelectedCourseIds((prev) => {
@@ -93,8 +79,8 @@ function App() {
         title="Refresh Courses"
       >
         <RefreshCourses
-          onCoursesRefreshed={(data) => {
-            setCourses(data)
+          onCoursesRefreshed={() => {
+            queryClient.invalidateQueries({ queryKey: ['courses'] })
             setIsModalOpen(false)
           }}
         />

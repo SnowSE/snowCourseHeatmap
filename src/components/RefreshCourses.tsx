@@ -71,14 +71,48 @@ interface RefreshCoursesProps {
 
 export function RefreshCourses({ onCoursesRefreshed }: RefreshCoursesProps) {
   const [authToken, setAuthToken] = useState('')
+  const [copied, setCopied] = useState(false)
+
+  const textToCopy = `
+  copy(
+    JSON.parse(
+      localStorage.getItem("oidc.user:https://kc.snow.edu/realms/snowcollege/:portal")
+    ).access_token
+  );
+  console.log("Auth token copied to clipboard");`
 
   return (
-    <div className="rounded-xl border border-white/10 bg-black/30 p-6 shadow-lg backdrop-blur-sm">
-      <h2 className="text-xl font-semibold text-white">Refresh Courses</h2>
-      <p className="mt-1 text-sm text-white/70">
-        Paste your <code className="text-white/90">jwt</code> auth token to
-        fetch latest courses.
-      </p>
+    <div className="">
+      <div className="relative mb-4">
+        <pre className="text-wrap p-1 bg-slate-950 text-sm rounded-md pr-20">
+          {textToCopy}
+        </pre>
+        <button
+          type="button"
+          onClick={async () => {
+            await navigator.clipboard.writeText(textToCopy)
+            setCopied(true)
+            setTimeout(() => setCopied(false), 2000)
+          }}
+          className="absolute right-1 top-1 rounded bg-blue-900 px-3 py-1 text-xs font-medium text-white hover:bg-blue-800 transition-colors flex items-center gap-1"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          {copied ? 'Copied!' : 'Copy'}
+        </button>
+      </div>
       <form
         className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end"
         onSubmit={async (e) => {
