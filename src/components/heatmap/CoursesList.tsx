@@ -1,16 +1,15 @@
 import { FC, useState, useEffect, useDeferredValue, useRef } from 'react'
-import type { Course } from '../schemas/courses'
+import type { Course } from '../../schemas/courses'
 import { CourseItem } from './CourseItem'
 
-interface CoursesListProps {
+
+export const CoursesList: FC< {
   courses: Course[]
   selectedCourseIds: Set<string>
   onToggleCourse: (crn: string) => void
   onSelectAll?: (crns: string[]) => void
   onClearAll?: () => void
-}
-
-export const CoursesList: FC<CoursesListProps> = ({
+}> = ({
   courses,
   selectedCourseIds,
   onToggleCourse,

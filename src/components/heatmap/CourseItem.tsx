@@ -1,16 +1,11 @@
 import { FC } from 'react'
-import type { Course } from '../schemas/courses'
-
+import type { Course } from '../../schemas/courses'
 
 export const CourseItem: FC<{
   course: Course
   isSelected: boolean
   onToggle: () => void
-}> = ({
-  course,
-  isSelected,
-  onToggle,
-}) => {
+}> = ({ course, isSelected, onToggle }) => {
   return (
     <label className="rounded-lg border border-white/10 bg-black/30 p-4 shadow-lg backdrop-blur-sm block cursor-pointer">
       <div className="flex items-start gap-3">

@@ -1,13 +1,12 @@
 import { type ReactNode, useEffect, useRef } from 'react'
 
-interface ModalProps {
+
+export function Modal({ isOpen, onClose, children, title }: {
   isOpen: boolean
   onClose: () => void
   children: ReactNode
   title?: string
-}
-
-export function Modal({ isOpen, onClose, children, title }: ModalProps) {
+}) {
   const dialogRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {

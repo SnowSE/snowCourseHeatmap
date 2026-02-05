@@ -1,30 +1,19 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState, useMemo, useDeferredValue } from 'react'
-import { RefreshCourses } from '../components/RefreshCourses'
-import { CoursesList } from '../components/CoursesList'
-import { CourseWeekHeatmap } from '@/components/CourseWeekHeatmap'
-import { Modal } from '@/components/Modal'
-import { FormSelect } from '../components/FormSelect'
+import { CoursesList } from '../components/heatmap/CoursesList'
+import { CourseWeekHeatmap } from '@/components/heatmap/CourseWeekHeatmap'
 import { useCourses } from '../hooks/useCourses'
+import { useTerm } from '../contexts/TermContext'
 
 export const Route = createFileRoute('/')({ component: App })
 
 function App() {
-  const queryClient = Route.useRouteContext().queryClient
   const { data: coursesData = {} } = useCourses()
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const { selectedTerm } = useTerm()
   const [selectedCourseIds, setSelectedCourseIds] = useState<Set<string>>(
     new Set(),
   )
-  
-  // Get available terms and select the first one by default
-  const availableTerms = Object.keys(coursesData).sort().reverse()
-  const termOptions = availableTerms.map((term) => ({
-    value: term,
-    label: term,
-  }))
-  const [selectedTerm, setSelectedTerm] = useState(availableTerms[0] || '')
-  
+
   // Get courses for selected term
   const courses = selectedTerm ? coursesData[selectedTerm] || [] : []
 
@@ -63,24 +52,7 @@ function App() {
   }
 
   return (
-    <div className="w-full text-blue-100 flex flex-col  h-full">
-      <div className="flex justify-center gap-4 items-center">
-        {termOptions.length > 0 && (
-          <FormSelect
-            id="term"
-            label="Term"
-            value={selectedTerm}
-            onChange={setSelectedTerm}
-            options={termOptions}
-          />
-        )}
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="inline-flex items-center justify-center rounded-lg bg-blue-800 px-5 py-3 font-semibold text-blue-100 transition-colors hover:bg-blue-600 mt-6"
-        >
-          Refresh Courses
-        </button>
-      </div>
+    <div className="w-full text-blue-100 flex flex-col h-full">
       <div className="flex flex-row min-h-0 justify-center flex-1">
         <CoursesList
           courses={courses}
@@ -93,19 +65,6 @@ function App() {
           <CourseWeekHeatmap courses={coursesForHeatmap} />
         </div>
       </div>
-
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title="Refresh Courses"
-      >
-        <RefreshCourses
-          onCoursesRefreshed={() => {
-            queryClient.invalidateQueries({ queryKey: ['courses'] })
-            setIsModalOpen(false)
-          }}
-        />
-      </Modal>
     </div>
   )
 }

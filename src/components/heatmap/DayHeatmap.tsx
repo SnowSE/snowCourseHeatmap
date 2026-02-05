@@ -33,7 +33,7 @@ function generateTimeSlots(startTime: string, endTime: string): TimeSlot[] {
     if (currentMin >= 60) {
       currentMin = 0
       currentHour++
-    }
+    } 
   }
 
   return slots

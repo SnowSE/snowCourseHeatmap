@@ -1,7 +1,13 @@
 import { createServerFn } from '@tanstack/react-start'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  useSuspenseQuery,
+} from '@tanstack/react-query'
 import z from 'zod'
 import { CourseSchema } from '../schemas/courses'
+import { useTerm } from '@/contexts/TermContext'
 
 const updateCoursesFile = async (term: string, courses: any[]) => {
   const fs = await import('fs/promises')
@@ -105,6 +111,16 @@ export function useCourses() {
   return useQuery({
     queryKey: ['courses'],
     queryFn: () => getStoredCourses(),
+  })
+}
+
+export const useCoursesInCurrentTerm = () => {
+  const { selectedTerm } = useTerm()
+  const { data: coursesData = {} } = useCourses()
+
+  return useSuspenseQuery({
+    queryKey: ['courses', 'term', selectedTerm],
+    queryFn: () => coursesData[selectedTerm] || [],
   })
 }
 
