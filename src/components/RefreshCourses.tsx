@@ -1,85 +1,70 @@
-import { createServerFn } from '@tanstack/react-start'
 import { useState } from 'react'
-import z from 'zod'
-import { CourseSchema, type Course } from '../schemas/courses'
-import { writeFile } from 'fs/promises'
+import { useRefreshCourses } from '../hooks/useCourses'
+import { FormSelect } from './FormSelect'
+import type { Course } from '../schemas/courses'
 
-export const refreshCourses = createServerFn()
-  .inputValidator(
-    z.object({
-      authToken: z.string(),
-    }),
-  )
-  .handler(async ({ data: { authToken } }) => {
-    const term = '202610'
-    const body = {
-      division_codes: [],
-      department_codes: [
-        'AD',
-        'BSCI',
-        'BIOL',
-        'BUS',
-        'CHEM',
-        'COMM',
-        'ENCS',
-        'CM',
-        'CED',
-        'DANC',
-        'EDFS',
-        'ENPH',
-        'EXSC',
-        'GEOL',
-        'AHNA',
-        'HONR',
-        'INDM',
-        'ITEC',
-        'LALI',
-        'MATH',
-        'MUSC',
-        'NR',
-        'NURS',
-        'PHSX',
-        'STEC',
-        'SS',
-        'THEA',
-        'TRAN',
-        'ART',
-      ],
-      subject_codes: [],
-      instructor_codes: [],
+function generateTermOptions() {
+  const now = new Date()
+  const currentYear = now.getFullYear()
+  const currentMonth = now.getMonth() + 1 // 1-12
+
+  // Determine current term based on month
+  let currentTermYear = currentYear
+  let currentTermSemester: number
+
+  if (currentMonth >= 1 && currentMonth <= 5) {
+    currentTermSemester = 10 // Spring
+  } else if (currentMonth >= 6 && currentMonth <= 8) {
+    currentTermSemester = 30 // Summer
+  } else {
+    currentTermSemester = 40 // Fall
+  }
+
+  const terms: Array<{ value: string; label: string }> = []
+
+  // Generate current term + next 3 terms
+  for (let i = 0; i < 4; i++) {
+    const termYear = currentTermYear
+    const termSemester = currentTermSemester
+
+    const semesterName =
+      termSemester === 10 ? 'Spring' : termSemester === 30 ? 'Summer' : 'Fall'
+    terms.push({
+      value: `${termYear}${termSemester}`,
+      label: `${semesterName} ${termYear}`,
+    })
+
+    // Calculate next term
+    if (currentTermSemester === 10) {
+      currentTermSemester = 30
+    } else if (currentTermSemester === 30) {
+      currentTermSemester = 40
+    } else {
+      currentTermSemester = 10
+      currentTermYear++
     }
-    const response = await fetch(
-      `https://my.snow.edu/api/faculty/sections/${term}`,
-      {
-        headers: {
-          Cookie: `jwt=${authToken}`,
-          'Content-Type': 'application/json',
-        },
-        method: 'POST',
-        body: JSON.stringify(body),
-      },
-    )
-    const json = await response.json()
-    await writeFile('courses.json', JSON.stringify(json, null, 2), 'utf-8')
+  }
 
-    return z.array(CourseSchema).parse(json)
-  })
-
-interface RefreshCoursesProps {
-  onCoursesRefreshed: (courses: Course[]) => void
+  return terms
 }
 
-export function RefreshCourses({ onCoursesRefreshed }: RefreshCoursesProps) {
+export function RefreshCourses({
+  onCoursesRefreshed,
+}: {
+  onCoursesRefreshed: (courses: Course[]) => void
+}) {
+  const termOptions = generateTermOptions()
+  const refreshMutation = useRefreshCourses()
   const [authToken, setAuthToken] = useState('')
+  const [term, setTerm] = useState(termOptions[0].value)
   const [copied, setCopied] = useState(false)
 
-  const textToCopy = `
-  copy(
-    JSON.parse(
-      localStorage.getItem("oidc.user:https://kc.snow.edu/realms/snowcollege/:portal")
-    ).access_token
-  );
-  console.log("Auth token copied to clipboard");`
+  const textToCopy = `copy(
+  JSON.parse(
+    localStorage.getItem("oidc.user:https://kc.snow.edu/realms/snowcollege/:portal")
+  ).access_token
+);
+console.log("Auth token copied to clipboard");`
 
   return (
     <div className="">
@@ -117,10 +102,23 @@ export function RefreshCourses({ onCoursesRefreshed }: RefreshCoursesProps) {
         className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end"
         onSubmit={async (e) => {
           e.preventDefault()
-          const data = await refreshCourses({ data: { authToken } })
-          onCoursesRefreshed(data)
+          refreshMutation.mutate(
+            { authToken, term },
+            {
+              onSuccess: (data) => {
+                onCoursesRefreshed(data)
+              },
+            },
+          )
         }}
       >
+        <FormSelect
+          id="term"
+          label="Term"
+          value={term}
+          onChange={setTerm}
+          options={termOptions}
+        />
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <label
             htmlFor="authToken"
