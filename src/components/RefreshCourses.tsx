@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useRefreshCourses } from '../hooks/useCourses'
 import { FormSelect } from './form/FormSelect'
+import { TextInput } from './form/TextInput'
 import type { Course } from '../schemas/courses'
 
 function generateTermOptions() {
@@ -100,7 +101,7 @@ console.log("Auth token copied to clipboard");`
         </button>
       </div>
       <form
-        className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end"
+        className="flex gap-3"
         onSubmit={async (e) => {
           e.preventDefault()
           refreshMutation.mutate(
@@ -120,34 +121,28 @@ console.log("Auth token copied to clipboard");`
           onChange={setTerm}
           options={termOptions}
         />
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <label
-            htmlFor="authToken"
-            className="text-sm font-medium text-white/90"
-          >
-            Auth token
-          </label>
-          <input
-            id="authToken"
-            type="text"
-            value={authToken}
-            onChange={(e) => {
-              if (e.target.value.includes('=')) {
-                setAuthToken(e.target.value.split('=')[1].trim())
-              } else {
-                setAuthToken(e.target.value)
-              }
-            }}
-            placeholder="Enter auth token"
-            autoComplete="off"
-            spellCheck={false}
-            className="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-60"
-          />
-        </div>
+        <TextInput
+          id="authToken"
+          label="Auth token"
+          value={authToken}
+          onChange={(e) => {
+            if (e.target.value.includes('=')) {
+              setAuthToken(e.target.value.split('=')[1].trim())
+            } else {
+              setAuthToken(e.target.value)
+            }
+          }}
+          autoComplete="off"
+          spellCheck={false}
+          className="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-60"
+        />
 
         <button
           type="submit"
-          className="inline-flex items-center justify-center rounded-lg bg-blue-500 px-5 py-3 font-semibold text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:bg-blue-500/50"
+          className="rounded-lg bg-blue-800/50 px-5 py-3 font-semibold text-blue-100 
+                    transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:bg-blue-500/50
+                    text-nowrap
+          "
         >
           Refresh Courses
         </button>
