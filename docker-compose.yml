@@ -8,9 +8,9 @@ services:
     environment:
       - NODE_ENV=production
     volumes:
-      - ./courses.json:/app/courses.json:rw
       - ./storage:/app/storage
     restart: unless-stopped
+    
   cloudflare-tunnel:
     image: cloudflare/cloudflared
     container_name: cloudflare-tunnel
