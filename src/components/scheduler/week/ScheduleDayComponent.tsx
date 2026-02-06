@@ -15,6 +15,7 @@ interface CourseMeetingInDay {
   end_time: string
   meet_info: z.infer<typeof MeetInfoSchema>[]
   instructors?: string[]
+  creditHours?: number
 }
 
 const timeToMinutes = (time: string): number => {
@@ -114,7 +115,9 @@ export const ScheduleDayComponent: FC<{
 
   return (
     <div className="flex flex-col gap-2 h-full">
-      <h3 className="text-lg font-semibold text-slate-600 text-center">{day}</h3>
+      <h3 className="text-lg font-semibold text-slate-600 text-center">
+        {day}
+      </h3>
       <DroppableDay
         day={day}
         dayStartMinutes={dayStartMinutes}
@@ -143,6 +146,7 @@ export const ScheduleDayComponent: FC<{
               leftPercent={leftPercent}
               widthPercent={widthPercent}
               instructors={meeting.instructors}
+              creditHours={meeting.creditHours}
               onSelectProfessor={onSelectProfessor}
               onSelectRoom={onSelectRoom}
             />

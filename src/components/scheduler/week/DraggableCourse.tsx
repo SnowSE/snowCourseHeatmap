@@ -26,6 +26,7 @@ export const DraggableCourse: FC<{
   widthPercent?: number
   instructors?: string[]
   hasConflict?: boolean
+  creditHours?: number
   onSelectProfessor?: (professor: string) => void
   onSelectRoom?: (room: string) => void
 }> = ({
@@ -43,6 +44,7 @@ export const DraggableCourse: FC<{
   widthPercent = 100,
   instructors = [],
   hasConflict = false,
+  creditHours,
   onSelectProfessor,
   onSelectRoom,
 }) => {
@@ -76,7 +78,7 @@ export const DraggableCourse: FC<{
         draggable
         onDragStart={(e) => {
           e.dataTransfer.effectAllowed = 'move'
-          handleDragStart(crn, term, meetInfo, instructors[0])
+          handleDragStart(crn, term, meetInfo, instructors[0], creditHours)
         }}
         onContextMenu={handleContextMenu}
         onDoubleClick={handleDoubleClick}

@@ -54,6 +54,7 @@ export const ScheduleWeekDisplay: FC<{
                   end_time: meet.end_time!,
                   meet_info: course.meet_info,
                   instructors: course.instructors.map((inst) => inst.name),
+                  creditHours: course.credit_hours,
                 })),
             )
             .sort((a, b) => a.start_time.localeCompare(b.start_time))

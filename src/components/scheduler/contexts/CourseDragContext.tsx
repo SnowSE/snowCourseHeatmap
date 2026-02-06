@@ -11,6 +11,7 @@ const CourseDragContext = createContext<
         term: string,
         originalMeetInfo: z.infer<typeof MeetInfoSchema>[],
         originalProfessor?: string,
+        creditHours?: number,
       ) => void
       handleDrop: (
         day: string,
@@ -32,12 +33,14 @@ export function CourseDragProvider({ children }: { children: ReactNode }) {
     term: string | null
     originalMeetInfo: z.infer<typeof MeetInfoSchema>[] | null
     originalProfessor: string | null
+    creditHours: number | null
   }>({
     isDragging: false,
     crn: null,
     term: null,
     originalMeetInfo: null,
     originalProfessor: null,
+    creditHours: null,
   })
 
   const handleDragStart = (
@@ -45,6 +48,7 @@ export function CourseDragProvider({ children }: { children: ReactNode }) {
     term: string,
     originalMeetInfo: z.infer<typeof MeetInfoSchema>[],
     originalProfessor?: string,
+    creditHours?: number,
   ) => {
     setDragState({
       isDragging: true,
@@ -52,6 +56,7 @@ export function CourseDragProvider({ children }: { children: ReactNode }) {
       term,
       originalMeetInfo,
       originalProfessor: originalProfessor || null,
+      creditHours: creditHours ?? null,
     })
   }
 
@@ -62,6 +67,7 @@ export function CourseDragProvider({ children }: { children: ReactNode }) {
       term: null,
       originalMeetInfo: null,
       originalProfessor: null,
+      creditHours: null,
     })
   }
 
@@ -74,36 +80,32 @@ export function CourseDragProvider({ children }: { children: ReactNode }) {
   ) => {
     if (dragState.crn && dragState.term && dragState.originalMeetInfo) {
       const originalMeet = dragState.originalMeetInfo[0]
-      const endTime = calculateEndTime(time, originalMeet)
 
-      // Build new meet_info - preserve original days but update times
-      const newMeetInfo: z.infer<typeof MeetInfoSchema> = {
-        days: originalMeet?.days ?? [day],
-        start_time: time,
-        end_time: endTime,
-        // If dropped on student schedule, preserve original room
-        // Otherwise use target room if provided, or preserve original building/room
-        building: isStudentSchedule
-          ? (originalMeet?.building ?? null)
-          : targetRoom
-            ? targetRoom.split(' ')[0]
-            : (originalMeet?.building ?? null),
-        building_code: originalMeet?.building_code ?? null,
-        room: isStudentSchedule
-          ? (originalMeet?.room ?? null)
-          : targetRoom
-            ? targetRoom.split(' ').slice(1).join(' ')
-            : (originalMeet?.room ?? null),
-      }
+      // Determine new days based on drop pattern
+      const newDays = determineNewDays(originalMeet?.days ?? [], day)
 
-      // Record the course change using the changes context
-      // If dropped on student schedule, preserve original professor
-      // If dropped on a room (targetRoom provided but no targetProfessor), preserve original professor
-      const professorToUse = isStudentSchedule
-        ? dragState.originalProfessor || ''
-        : targetRoom && !targetProfessor
-          ? dragState.originalProfessor || ''
-          : targetProfessor || ''
+      const endTime = calculateEndTime(
+        time,
+        originalMeet,
+        newDays,
+        dragState.creditHours ?? undefined,
+      )
+
+      const newMeetInfo = buildNewMeetInfo(
+        newDays,
+        time,
+        endTime,
+        originalMeet,
+        targetRoom,
+        isStudentSchedule,
+      )
+
+      const professorToUse = determineProfessor(
+        isStudentSchedule,
+        targetRoom,
+        targetProfessor,
+        dragState.originalProfessor,
+      )
 
       addOrUpdateCourseChange({
         crn: dragState.crn,
@@ -138,29 +140,131 @@ export function useCourseDrag() {
   return context
 }
 
+const determineNewDays = (
+  originalDays: string[],
+  droppedDay: string,
+): string[] => {
+  const mwfDays = ['Monday', 'Wednesday', 'Friday']
+  const tthDays = ['Tuesday', 'Thursday']
+
+  if (originalDays.length === 1) {
+    // Single day class - just change to the dropped day
+    return [droppedDay]
+  }
+
+  // Multi-day class - check pattern
+  const isMWFClass = originalDays.every((d) => mwfDays.includes(d))
+  const isTTHClass = originalDays.every((d) => tthDays.includes(d))
+  const droppedOnMWF = mwfDays.includes(droppedDay)
+  const droppedOnTTH = tthDays.includes(droppedDay)
+
+  if (isMWFClass && droppedOnTTH) {
+    // MWF class dropped on T/TH - change to T/TH pattern
+    return tthDays
+  } else if (isTTHClass && droppedOnMWF) {
+    // T/TH class dropped on MWF - change to MWF pattern
+    return mwfDays
+  } else {
+    // Keep original pattern if drop doesn't match a pattern change
+    return originalDays
+  }
+}
+
 const calculateEndTime = (
   time: string,
   originalMeet?: z.infer<typeof MeetInfoSchema>,
+  newDays?: string[],
+  creditHours?: number,
 ): string => {
+  const newStart = time.split(':').map(Number)
+  let durationMinutes: number
+
+  // For 3-credit courses, adjust duration based on day pattern
+  if (creditHours === 3 && newDays) {
+    const mwfDays = ['Monday', 'Wednesday', 'Friday']
+    const tthDays = ['Tuesday', 'Thursday']
+    const isMWFClass = newDays.every((d) => mwfDays.includes(d))
+    const isTTHClass = newDays.every((d) => tthDays.includes(d))
+
+    if (isMWFClass) {
+      // MWF: 1 hour (60 minutes)
+      durationMinutes = 60
+    } else if (isTTHClass) {
+      // T/TH: 1.5 hours (90 minutes)
+      durationMinutes = 90
+    } else {
+      // Use original duration for other patterns
+      durationMinutes = getOriginalDuration(originalMeet)
+    }
+  } else {
+    // Use original duration for non-3-credit courses
+    durationMinutes = getOriginalDuration(originalMeet)
+  }
+
+  const newEndMinutes = newStart[0] * 60 + newStart[1] + durationMinutes
+  const endHours = Math.floor(newEndMinutes / 60)
+  const endMinutes = newEndMinutes % 60
+  return `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`
+}
+
+const getOriginalDuration = (
+  originalMeet?: z.infer<typeof MeetInfoSchema>,
+): number => {
   if (originalMeet?.start_time && originalMeet?.end_time) {
     const originalStart = originalMeet.start_time.split(':').map(Number)
     const originalEnd = originalMeet.end_time.split(':').map(Number)
-    const durationMinutes =
+    return (
       originalEnd[0] * 60 +
       originalEnd[1] -
       (originalStart[0] * 60 + originalStart[1])
-
-    const newStart = time.split(':').map(Number)
-    const newEndMinutes = newStart[0] * 60 + newStart[1] + durationMinutes
-    const endHours = Math.floor(newEndMinutes / 60)
-    const endMinutes = newEndMinutes % 60
-    return `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`
-  } else {
-    // Default to 50 minutes if no original duration
-    const newStart = time.split(':').map(Number)
-    const newEndMinutes = newStart[0] * 60 + newStart[1] + 50
-    const endHours = Math.floor(newEndMinutes / 60)
-    const endMinutes = newEndMinutes % 60
-    return `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`
+    )
   }
+  // Default to 50 minutes if no original duration
+  return 50
+}
+
+const buildNewMeetInfo = (
+  newDays: string[],
+  startTime: string,
+  endTime: string,
+  originalMeet?: z.infer<typeof MeetInfoSchema>,
+  targetRoom?: string,
+  isStudentSchedule?: boolean,
+): z.infer<typeof MeetInfoSchema> => {
+  return {
+    days: newDays,
+    start_time: startTime,
+    end_time: endTime,
+    // If dropped on student schedule, preserve original room
+    // Otherwise use target room if provided, or preserve original building/room
+    building: isStudentSchedule
+      ? (originalMeet?.building ?? null)
+      : targetRoom
+        ? targetRoom.split(' ')[0]
+        : (originalMeet?.building ?? null),
+    building_code: originalMeet?.building_code ?? null,
+    room: isStudentSchedule
+      ? (originalMeet?.room ?? null)
+      : targetRoom
+        ? targetRoom.split(' ').slice(1).join(' ')
+        : (originalMeet?.room ?? null),
+  }
+}
+
+const determineProfessor = (
+  isStudentSchedule?: boolean,
+  targetRoom?: string,
+  targetProfessor?: string,
+  originalProfessor?: string | null,
+): string => {
+  // If dropped on student schedule, preserve original professor
+  if (isStudentSchedule) {
+    return originalProfessor || ''
+  }
+  // If dropped on a room (targetRoom provided but no targetProfessor), preserve original professor
+  if (targetRoom && !targetProfessor) {
+    return originalProfessor || ''
+  }
+  // Otherwise use target professor
+  return targetProfessor || ''
 }
