@@ -3,7 +3,8 @@ import { useCourseDrag } from '@/contexts/CourseDragContext'
 import { useCoursesInCurrentTerm } from '@/hooks/useCourses'
 
 export const CourseChangesList: FC = () => {
-  const { courseChanges, clearCourseChanges } = useCourseDrag()
+  const { courseChanges, removeCourseChange, clearCourseChanges } =
+    useCourseDrag()
   const { data: courses = [] } = useCoursesInCurrentTerm()
 
   const changesWithOriginal = useMemo(() => {
@@ -20,11 +21,9 @@ export const CourseChangesList: FC = () => {
   }
 
   return (
-    <div className="overflow-y-auto bg-slate-800 border border-slate-600 rounded-lg shadow-xl">
-      <div className="sticky top-0 bg-slate-800 border-b border-slate-600 p-3 flex items-center justify-between">
-        <h3 className="font-bold text-white">
-          Course Changes ({courseChanges.length})
-        </h3>
+    <div className="overflow-y-auto bg-slate-800 shadow-xl rounded-lg">
+      <div className="px-3 py-2 flex items-center justify-between">
+        <h3 className="">Course Changes ({courseChanges.length})</h3>
         <button
           onClick={clearCourseChanges}
           className="px-3 py-1 text-sm bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded transition-colors"
@@ -32,83 +31,140 @@ export const CourseChangesList: FC = () => {
           Clear
         </button>
       </div>
-      <div className="p-3 space-y-3">
+      <div className="px-3 pb-3 space-y-3">
         {changesWithOriginal.map(({ change, original }, idx) => (
           <div
             key={`${change.crn}-${change.timestamp}-${idx}`}
             className="bg-slate-700/50 border border-slate-600 rounded p-3 space-y-2"
           >
-            {/* Course Header */}
-            <div className="font-semibold text-blue-300">
-              {original
-                ? `${original.subject_code} ${original.course_number}`
-                : change.crn}
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="font-semibold text-blue-300 pe-2">
+                  {original
+                    ? `${original.subject_code} ${original.course_number}`
+                    : change.crn}{' '}
+                </span>
+                {original && (
+                  <span className="text-sm text-slate-400 truncate">
+                    {original.name}
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={() => removeCourseChange(change.crn)}
+                className="text-slate-400 hover:text-red-400 transition-colors"
+                title="Remove change"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
             </div>
-            {original && (
-              <div className="text-sm text-slate-300 truncate">
-                {original.name}
-              </div>
-            )}
 
-            {/* Professor Change */}
             {original && (
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-slate-400">Professor:</span>
-                <span className="text-slate-200 truncate">
-                  {original.instructors.map((i) => i.name).join(', ')}
-                </span>
-                <span className="text-green-400">→</span>
-                <span className="text-green-300 font-medium truncate">
-                  {change.targetProfessor || 'N/A'}
-                </span>
-              </div>
-            )}
-
-            {/* Meeting Times Change */}
-            <div className="space-y-1">
-              <div className="text-xs text-slate-400">Meeting Times:</div>
-              {original?.meet_info.map((originalMeet, meetIdx) => {
-                const newMeet = change.meet_info[meetIdx]
-                return (
-                  <div
-                    key={meetIdx}
-                    className="flex items-start gap-2 text-sm pl-2"
-                  >
-                    {/* Original */}
-                    <div className="flex-1 text-slate-300">
-                      <div className="font-mono text-xs">
-                        {formatDays(originalMeet.days)}{' '}
-                        {formatTime12Hour(originalMeet.start_time)}-
-                        {formatTime12Hour(originalMeet.end_time)}
-                      </div>
-                      {originalMeet.building && (
-                        <div className="text-xs text-slate-400">
-                          {originalMeet.building} {originalMeet.room}
-                        </div>
-                      )}
+              <div className="grid grid-cols-[1fr_auto_1fr] gap-3 text-sm items-center">
+                <div className="space-y-2">
+                  {/* Professor - only if changed */}
+                  {original.instructors.map((i) => i.name).join(', ') !==
+                    change.targetProfessor && (
+                    <div className="text-rose-200/80 truncate">
+                      {original.instructors.map((i) => i.name).join(', ')}
                     </div>
+                  )}
 
-                    <span className="text-green-400 shrink-0">→</span>
+                  {/* Meeting Times - only if changed */}
+                  {original.meet_info.map((originalMeet, meetIdx) => {
+                    const newMeet = change.meet_info[meetIdx]
+                    const timesChanged =
+                      newMeet &&
+                      (originalMeet.start_time !== newMeet.start_time ||
+                        originalMeet.end_time !== newMeet.end_time ||
+                        formatDays(originalMeet.days) !==
+                          formatDays(newMeet.days))
+                    const roomChanged =
+                      newMeet &&
+                      (originalMeet.building !== newMeet.building ||
+                        originalMeet.room !== newMeet.room)
 
-                    {/* New */}
-                    {newMeet && (
-                      <div className="flex-1 text-green-300">
-                        <div className="font-mono text-xs font-medium">
-                          {formatDays(newMeet.days)}{' '}
-                          {formatTime12Hour(newMeet.start_time)}-
-                          {formatTime12Hour(newMeet.end_time)}
-                        </div>
-                        {newMeet.building && (
-                          <div className="text-xs text-green-400">
+                    if (!timesChanged && !roomChanged) return null
+
+                    return (
+                      <div key={meetIdx} className="text-rose-200/80">
+                        {timesChanged && (
+                          <div className="font-mono text-xs">
+                            {formatDays(originalMeet.days)}{' '}
+                            {formatTime12Hour(originalMeet.start_time)}-
+                            {formatTime12Hour(originalMeet.end_time)}
+                          </div>
+                        )}
+                        {roomChanged && originalMeet.building && (
+                          <div className="text-xs text-slate-400">
+                            {originalMeet.building} {originalMeet.room}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+
+                <div className="flex items-start pt-0.5">
+                  <span className="text-green-400">→</span>
+                </div>
+
+                <div className="space-y-2">
+                  {original.instructors.map((i) => i.name).join(', ') !==
+                    change.targetProfessor && (
+                    <div className="text-emerald-200 truncate">
+                      {change.targetProfessor || 'N/A'}
+                    </div>
+                  )}
+
+                  {change.meet_info.map((newMeet, meetIdx) => {
+                    const originalMeet = original.meet_info[meetIdx]
+                    const timesChanged =
+                      originalMeet &&
+                      (originalMeet.start_time !== newMeet.start_time ||
+                        originalMeet.end_time !== newMeet.end_time ||
+                        formatDays(originalMeet.days) !==
+                          formatDays(newMeet.days))
+                    const roomChanged =
+                      originalMeet &&
+                      (originalMeet.building !== newMeet.building ||
+                        originalMeet.room !== newMeet.room)
+
+                    if (!timesChanged && !roomChanged) return null
+
+                    return (
+                      <div key={meetIdx} className="text-emerald-200">
+                        {timesChanged && (
+                          <div className="font-mono text-xs font-medium">
+                            {formatDays(newMeet.days)}{' '}
+                            {formatTime12Hour(newMeet.start_time)}-
+                            {formatTime12Hour(newMeet.end_time)}
+                          </div>
+                        )}
+                        {roomChanged && newMeet.building && (
+                          <div className="text-xs text-emerald-200">
                             {newMeet.building} {newMeet.room}
                           </div>
                         )}
                       </div>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -119,9 +175,8 @@ export const CourseChangesList: FC = () => {
 const formatTime12Hour = (time: string | null): string => {
   if (!time) return 'N/A'
   const [hours, minutes] = time.split(':').map(Number)
-  const period = hours >= 12 ? 'PM' : 'AM'
   const displayHours = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours
-  return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`
+  return `${displayHours}:${minutes.toString().padStart(2, '0')}`
 }
 
 const formatDays = (days: string[]): string => {

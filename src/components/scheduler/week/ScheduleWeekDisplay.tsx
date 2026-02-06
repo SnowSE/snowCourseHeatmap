@@ -2,17 +2,14 @@ import { FC, useMemo } from 'react'
 import { ScheduleDayComponent } from './ScheduleDayComponent'
 import { ClassesWeekTimeLabels } from './ClassesWeekTimeLabels'
 import type { Course } from '@/schemas/courses'
-import type { CourseOwner } from '../ScheduleOwnerList'
+import { CourseOwner } from '@/contexts/CourseOwnerContext'
 
-interface ScheduleWeekDisplayProps {
+export const ScheduleWeekDisplay: FC<{
   courses: Course[]
   owner?: CourseOwner
-}
-
-export const ScheduleWeekDisplay: FC<ScheduleWeekDisplayProps> = ({
-  courses,
-  owner,
-}) => {
+  onSelectProfessor?: (professor: string) => void
+  onSelectRoom?: (room: string) => void
+}> = ({ courses, owner, onSelectProfessor, onSelectRoom }) => {
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
 
   const meetingTimesByDay = useMemo(
@@ -35,6 +32,7 @@ export const ScheduleWeekDisplay: FC<ScheduleWeekDisplayProps> = ({
                   start_time: meet.start_time!,
                   end_time: meet.end_time!,
                   meet_info: course.meet_info,
+                  instructors: course.instructors.map((inst) => inst.name),
                 })),
             )
             .sort((a, b) => a.start_time.localeCompare(b.start_time))
@@ -58,6 +56,7 @@ export const ScheduleWeekDisplay: FC<ScheduleWeekDisplayProps> = ({
               building_code: string | null
               room: string | null
             }[]
+            instructors?: string[]
           }[]
         >,
       ),
@@ -79,6 +78,8 @@ export const ScheduleWeekDisplay: FC<ScheduleWeekDisplayProps> = ({
             dayStartTime={start}
             dayEndTime={end}
             owner={owner}
+            onSelectProfessor={onSelectProfessor}
+            onSelectRoom={onSelectRoom}
           />
         ))}
       </div>

@@ -1,80 +1,13 @@
-import { useState, useEffect } from 'react'
-import { ScheduleOwnerList, CourseOwner } from './ScheduleOwnerList'
+import { useState } from 'react'
+import { ScheduleOwnerList } from './ScheduleOwnerList'
 import { ScheduleOwnerWeekDisplay } from './week/ScheduleOwnerWeekDisplay'
 import { CourseChangesList } from './CourseChangesList'
-
-const STORAGE_KEY = 'selectedCourseOwners'
-
-const serializeCourseOwner = (owner: CourseOwner): string => {
-  if (owner.professorName) return `professor:${owner.professorName}`
-  if (owner.roomName) return `room:${owner.roomName}`
-  return ''
-}
-
-const deserializeCourseOwner = (key: string): CourseOwner | null => {
-  const [type, ...nameParts] = key.split(':')
-  const name = nameParts.join(':')
-  if (type === 'professor') return { professorName: name }
-  if (type === 'room') return { roomName: name }
-  return null
-}
-
-const loadFromLocalStorage = (): Set<string> => {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored) {
-      const parsed = JSON.parse(stored) as string[]
-      return new Set(parsed)
-    }
-  } catch (error) {
-    console.error(
-      'Failed to load selected course owners from localStorage:',
-      error,
-    )
-  }
-  return new Set()
-}
-
-const saveToLocalStorage = (selectedOwners: Set<string>) => {
-  try {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(Array.from(selectedOwners)),
-    )
-  } catch (error) {
-    console.error(
-      'Failed to save selected course owners to localStorage:',
-      error,
-    )
-  }
-}
+import { useCourseOwner } from '@/contexts/CourseOwnerContext'
 
 export const ScheduleViewer = () => {
-  const [selectedCourseOwners, setSelectedCourseOwners] = useState<Set<string>>(
-    () => loadFromLocalStorage(),
-  )
+  const { selectedCourseOwners, clearAllCourseOwners, deserializeCourseOwner } =
+    useCourseOwner()
   const [filter, setFilter] = useState('')
-
-  useEffect(() => {
-    saveToLocalStorage(selectedCourseOwners)
-  }, [selectedCourseOwners])
-
-  const toggleCourseOwner = (owner: CourseOwner) => {
-    const key = serializeCourseOwner(owner)
-    setSelectedCourseOwners((prev) => {
-      const next = new Set(prev)
-      if (next.has(key)) {
-        next.delete(key)
-      } else {
-        next.add(key)
-      }
-      return next
-    })
-  }
-
-  const clearAllSelections = () => {
-    setSelectedCourseOwners(new Set())
-  }
 
   return (
     <div className="h-full flex">
@@ -92,7 +25,7 @@ export const ScheduleViewer = () => {
                        focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
           />
           <button
-            onClick={clearAllSelections}
+            onClick={clearAllCourseOwners}
             disabled={selectedCourseOwners.size === 0}
             className="w-full rounded-lg 
                        border border-white/20 bg-red-500/20 
@@ -103,11 +36,7 @@ export const ScheduleViewer = () => {
             Clear Selection ({selectedCourseOwners.size})
           </button>
         </div>
-        <ScheduleOwnerList
-          filter={filter}
-          selectedCourseOwners={selectedCourseOwners}
-          onToggleCourseOwner={toggleCourseOwner}
-        />
+        <ScheduleOwnerList filter={filter} />
       </div>
       <div className=" flex flex-wrap flex-1 overflow-y-auto">
         {Array.from(selectedCourseOwners).map((key) => {
@@ -120,7 +49,7 @@ export const ScheduleViewer = () => {
           )
         })}
       </div>
-      <div className='w-96'>
+      <div className="w-96">
         <CourseChangesList />
       </div>
     </div>

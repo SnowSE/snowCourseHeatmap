@@ -1,23 +1,14 @@
 import { useCoursesInCurrentTerm } from '@/hooks/useCourses'
 import { useCourseOwners } from '@/hooks/useCourseOwners'
 import { useState, useEffect, useDeferredValue, useRef, FC } from 'react'
-
-export interface CourseOwner {
-  professorName?: string
-  roomName?: string
-}
+import { useCourseOwner, CourseOwner } from '@/contexts/CourseOwnerContext'
 
 interface ProfessorListProps {
   filter: string
-  selectedCourseOwners: Set<string> // Serialized CourseOwner (e.g., "professor:John Doe" or "room:Room 101")
-  onToggleCourseOwner: (owner: CourseOwner) => void
 }
 
-export const ScheduleOwnerList: FC<ProfessorListProps> = ({
-  filter,
-  selectedCourseOwners,
-  onToggleCourseOwner,
-}) => {
+export const ScheduleOwnerList: FC<ProfessorListProps> = ({ filter }) => {
+  const { selectedCourseOwners, toggleCourseOwner } = useCourseOwner()
   const { data: courses = [] } = useCoursesInCurrentTerm()
   const [visibleCount, setVisibleCount] = useState(50)
   const deferredFilter = useDeferredValue(filter)
@@ -64,7 +55,7 @@ export const ScheduleOwnerList: FC<ProfessorListProps> = ({
             return (
               <div
                 key={key}
-                onClick={() => onToggleCourseOwner(owner)}
+                onClick={() => toggleCourseOwner(owner)}
                 className={`flex justify-between items-center p-2 rounded cursor-pointer transition-all ${
                   isSelected
                     ? 'bg-blue-600/40 ring-2 ring-blue-500/50 hover:bg-blue-600/50'

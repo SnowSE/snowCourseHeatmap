@@ -1,9 +1,9 @@
 import { FC, useMemo } from 'react'
-import { useCourseDrag } from '@/contexts/CourseDragContext'
 import type { z } from 'zod'
 import { MeetInfoSchema } from '@/schemas/courses'
-import type { CourseOwner } from '../ScheduleOwnerList'
 import { DraggableCourse } from './DraggableCourse'
+import { DroppableDay } from './DroppableDay'
+import { CourseOwner } from '@/contexts/CourseOwnerContext'
 
 interface CourseMeetingInDay {
   courseName: string
@@ -14,6 +14,7 @@ interface CourseMeetingInDay {
   start_time: string
   end_time: string
   meet_info: z.infer<typeof MeetInfoSchema>[]
+  instructors?: string[]
 }
 
 const timeToMinutes = (time: string): number => {
@@ -27,8 +28,9 @@ export const ScheduleDayComponent: FC<{
   dayStartTime: string
   dayEndTime: string
   owner?: CourseOwner
-}> = ({ day, meetings, dayStartTime, dayEndTime, owner }) => {
-  const { handleDrop } = useCourseDrag()
+  onSelectProfessor?: (professor: string) => void
+  onSelectRoom?: (room: string) => void
+}> = ({ day, meetings, dayStartTime, dayEndTime, owner, onSelectProfessor, onSelectRoom }) => {
   const dayStartMinutes = timeToMinutes(dayStartTime)
   const dayEndMinutes = timeToMinutes(dayEndTime)
   const totalDayMinutes = dayEndMinutes - dayStartMinutes
@@ -71,40 +73,14 @@ export const ScheduleDayComponent: FC<{
   return (
     <div className="flex flex-col gap-2 h-full">
       <h3 className="text-lg font-semibold text-blue-300 text-center">{day}</h3>
-      <div
-        className="relative flex-1 min-h-0  rounded-lg bg-slate-900/30"
-        onDragOver={(e) => {
-          e.preventDefault()
-          e.dataTransfer.dropEffect = 'move'
-        }}
-        onDrop={(e) => {
-          e.preventDefault()
-          if (!owner) return
-
-          const rect = e.currentTarget.getBoundingClientRect()
-          const y = e.clientY - rect.top
-          const percentY = (y / rect.height) * 100
-          const droppedMinutes =
-            dayStartMinutes + (percentY / 100) * totalDayMinutes
-
-          // Round to nearest 30-minute interval
-          const roundedMinutes = Math.round(droppedMinutes / 30) * 30
-          const hours = Math.floor(roundedMinutes / 60)
-          const minutes = roundedMinutes % 60
-          const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
-
-          handleDrop(day, timeString, owner.professorName, owner.roomName)
-        }}
+      <DroppableDay
+        day={day}
+        dayStartMinutes={dayStartMinutes}
+        dayEndMinutes={dayEndMinutes}
+        totalDayMinutes={totalDayMinutes}
+        owner={owner}
+        timeGridLines={timeGridLines}
       >
-        {/* Time grid lines */}
-        {timeGridLines.map((topPercent, idx) => (
-          <div
-            key={idx}
-            className="absolute left-0 right-0 border-t border-slate-700/30"
-            style={{ top: `${topPercent}%` }}
-          />
-        ))}
-
         {meetingsWithPositions.map((meeting, idx) => (
           <DraggableCourse
             key={`${meeting.crn}-${idx}`}
@@ -118,9 +94,12 @@ export const ScheduleDayComponent: FC<{
             meetInfo={meeting.meet_info}
             topPercent={meeting.topPercent}
             heightPercent={meeting.heightPercent}
+            instructors={meeting.instructors}
+            onSelectProfessor={onSelectProfessor}
+            onSelectRoom={onSelectRoom}
           />
         ))}
-      </div>
+      </DroppableDay>
     </div>
   )
 }

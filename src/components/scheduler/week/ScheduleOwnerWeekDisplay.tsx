@@ -1,16 +1,17 @@
 import { useCoursesInCurrentTerm } from '@/hooks/useCourses'
 import { FC, useMemo } from 'react'
 import { ScheduleWeekDisplay } from './ScheduleWeekDisplay'
-import { CourseOwner } from '../ScheduleOwnerList'
+import { CourseOwner, useCourseOwner } from '@/contexts/CourseOwnerContext'
 import { useCourseDrag } from '@/contexts/CourseDragContext'
 
-export const ScheduleOwnerWeekDisplay: FC<{ owner: CourseOwner }> = ({
-  owner,
-}) => {
+export const ScheduleOwnerWeekDisplay: FC<{
+  owner: CourseOwner
+}> = ({ owner }) => {
+  const { removeCourseOwner, addCourseOwner } = useCourseOwner()
   const { data: courses = [] } = useCoursesInCurrentTerm()
 
   const { courseChanges } = useCourseDrag()
-  
+
   const coursesWithChanges = useMemo(() => {
     if (!courseChanges || courseChanges.length === 0) return courses
 
@@ -64,8 +65,35 @@ export const ScheduleOwnerWeekDisplay: FC<{ owner: CourseOwner }> = ({
 
   return (
     <div className="flex flex-col bg-slate-900 rounded-lg border border-slate-600/50 p-1 py-3">
-      <h2 className="text-center font-bold">{displayName}</h2>
-      <ScheduleWeekDisplay courses={ownerCourses} owner={owner} />
+      <div className="flex items-center justify-between px-2 mb-1">
+        <h2 className="text-center font-bold flex-1">{displayName}</h2>
+        <button
+          onClick={() => removeCourseOwner(owner)}
+          className="text-slate-400 hover:text-red-400 transition-colors"
+          title="Remove"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <ScheduleWeekDisplay
+        courses={ownerCourses}
+        owner={owner}
+        onSelectProfessor={(prof) => addCourseOwner({ professorName: prof })}
+        onSelectRoom={(room) => addCourseOwner({ roomName: room })}
+      />
     </div>
   )
 }

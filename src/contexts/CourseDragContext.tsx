@@ -23,6 +23,7 @@ const CourseDragContext = createContext<
         targetProfessor?: string,
         targetRoom?: string,
       ) => void
+      removeCourseChange: (crn: string) => void
       clearCourseChanges: () => void
     }
   | undefined
@@ -125,6 +126,10 @@ export function CourseDragProvider({ children }: { children: ReactNode }) {
     handleDragEnd()
   }
 
+  const removeCourseChange = (crn: string) => {
+    setCourseChanges((prev) => prev.filter((change) => change.crn !== crn))
+  }
+
   const clearCourseChanges = () => {
     setCourseChanges([])
   }
@@ -136,6 +141,7 @@ export function CourseDragProvider({ children }: { children: ReactNode }) {
         courseChanges,
         handleDragStart,
         handleDrop,
+        removeCourseChange,
         clearCourseChanges,
       }}
     >
