@@ -1,7 +1,7 @@
 import { useCoursesInCurrentTerm } from '@/hooks/useCourses'
 import { FC, useMemo } from 'react'
 import { ScheduleWeekDisplay } from './ScheduleWeekDisplay'
-import { CourseOwner } from './ScheduleOwnerList'
+import { CourseOwner } from '../ScheduleOwnerList'
 
 export const ProfessorWeekDisplay: FC<{ owner: CourseOwner }> = ({ owner }) => {
   const { data: courses = [] } = useCoursesInCurrentTerm()
@@ -27,7 +27,7 @@ export const ProfessorWeekDisplay: FC<{ owner: CourseOwner }> = ({ owner }) => {
   const displayName = owner.professorName || owner.roomName || 'Unknown'
 
   return (
-    <div className="flex flex-col bg-slate-950 rounded-lg border border-slate-600/50 p-1 py-3">
+    <div className="flex flex-col bg-slate-900 rounded-lg border border-slate-600/50 p-1 py-3">
       <h2 className="text-center font-bold">{displayName}</h2>
       <ScheduleWeekDisplay courses={ownerCourses} />
     </div>

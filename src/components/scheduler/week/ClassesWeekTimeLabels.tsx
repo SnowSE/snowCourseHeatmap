@@ -10,7 +10,7 @@ const minutesToTime = (minutes: number): string => {
   const mins = minutes % 60
   const period = hours >= 12 ? 'PM' : 'AM'
   const displayHours = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours
-  return `${displayHours}:${mins.toString().padStart(2, '0')} ${period}`
+  return `${displayHours}:${mins.toString().padStart(2, '0')}`
 }
 
 export const ClassesWeekTimeLabels: FC<{
@@ -24,8 +24,8 @@ export const ClassesWeekTimeLabels: FC<{
 
     const labels: { time: string; topPercent: number }[] = []
 
-    // Generate hourly labels
-    for (let minutes = startMinutes; minutes <= endMinutes; minutes += 60) {
+    // Generate labels at 30 minutes past each hour
+    for (let minutes = startMinutes + 30; minutes <= endMinutes; minutes += 60) {
       const topPercent = ((minutes - startMinutes) / totalMinutes) * 100
       labels.push({
         time: minutesToTime(minutes),

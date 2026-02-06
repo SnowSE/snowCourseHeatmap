@@ -8,38 +8,77 @@ import {
 import z from 'zod'
 import { CourseSchema } from '../schemas/courses'
 import { useTerm } from '@/contexts/TermContext'
+import { withDatabase } from '@/dbUtils'
 
-const updateCoursesFile = async (term: string, courses: any[]) => {
-  const fs = await import('fs/promises')
+const generateTermName = (termCode: string): string => {
+  const year = termCode.substring(0, 4)
+  const semester = termCode.substring(4)
+  const semesterName =
+    semester === '10'
+      ? 'Spring'
+      : semester === '30'
+        ? 'Summer'
+        : semester === '40'
+          ? 'Fall'
+          : 'Unknown'
+  return `${semesterName} ${year}`
+}
 
-  // Read existing data
-  let existingData: Record<string, any> = {}
-  try {
-    const fileContent = await fs.readFile('courses.json', 'utf-8')
-    existingData = JSON.parse(fileContent)
-  } catch (error) {
-    // File doesn't exist or is invalid, start fresh
-  }
+const updateCoursesInDatabase = async (term: string, courses: any[]) => {
+  withDatabase((db) => {
+    db.transaction(() => {
+      db.prepare(
+        'INSERT OR IGNORE INTO terms (term_code, name) VALUES (@termCode, @name)',
+      ).run({
+        termCode: term,
+        name: generateTermName(term),
+      })
 
-  // Update with new term data
-  existingData[term] = courses
+      db.prepare('DELETE FROM courses WHERE term_code = @termCode').run({
+        termCode: term,
+      })
 
-  await fs.writeFile(
-    'courses.json',
-    JSON.stringify(existingData, null, 2),
-    'utf-8',
-  )
+      const insertStmt = db.prepare(
+        'INSERT INTO courses (term_code, course_data) VALUES (@termCode, @courseData)',
+      )
+      for (const course of courses) {
+        insertStmt.run({
+          termCode: term,
+          courseData: JSON.stringify(course),
+        })
+      }
+    })()
+  })
 }
 
 export const getStoredCourses = createServerFn().handler(async () => {
-  const fs = await import('fs/promises')
   try {
-    const data = await fs.readFile('courses.json', 'utf-8')
-    const json = JSON.parse(data)
-    // Return as dictionary where keys are terms and values are course arrays
-    return z.record(z.string(), z.array(CourseSchema)).parse(json)
+    return withDatabase((db) => {
+      const rows = db
+        .prepare(
+          `
+            SELECT c.term_code, c.course_data
+            FROM courses c
+            JOIN terms t ON c.term_code = t.term_code
+            ORDER BY t.term_code
+          `,
+        )
+        .all() as Array<{ term_code: string; course_data: string }>
+
+      // Group courses by term
+      const coursesByTerm: Record<string, any[]> = {}
+      for (const row of rows) {
+        if (!coursesByTerm[row.term_code]) {
+          coursesByTerm[row.term_code] = []
+        }
+        coursesByTerm[row.term_code].push(JSON.parse(row.course_data))
+      }
+
+      // Validate and return
+      return z.record(z.string(), z.array(CourseSchema)).parse(coursesByTerm)
+    })
   } catch (error) {
-    // If file doesn't exist or is invalid, return empty object
+    // If database doesn't exist or error, return empty object
     return {}
   }
 })
@@ -102,7 +141,7 @@ export const refreshCourses = createServerFn()
     const coursesData = await response.json()
     const validatedCourses = z.array(CourseSchema).parse(coursesData)
 
-    await updateCoursesFile(term, validatedCourses)
+    await updateCoursesInDatabase(term, validatedCourses)
 
     return validatedCourses
   })

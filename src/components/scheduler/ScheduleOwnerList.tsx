@@ -73,13 +73,10 @@ export const ScheduleOwnerList: FC<ProfessorListProps> = ({
               >
                 <div className="flex items-center gap-2">
                   <span className="text-white font-medium">{displayName}</span>
-                  <span className="text-xs text-white/50 bg-slate-700/50 px-2 py-0.5 rounded">
-                    {type}
-                  </span>
                 </div>
-                <div className="text-sm text-white/70">
-                  {creditCount} credit{creditCount !== 1 ? 's' : ''} (
-                  {courses.length} course{courses.length !== 1 ? 's' : ''})
+                <div>
+                  {creditCount}{' '}
+                  <span className="text-sm text-white/70">cred.</span>
                 </div>
               </div>
             )

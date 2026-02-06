@@ -69,7 +69,7 @@ export const ScheduleWeekDayComponent: FC<{
   return (
     <div className="flex flex-col gap-2 h-full">
       <h3 className="text-lg font-semibold text-blue-300 text-center">{day}</h3>
-      <div className="relative flex-1 min-h-0 border border-slate-600/50 rounded-lg bg-slate-900/30">
+      <div className="relative flex-1 min-h-0  rounded-lg bg-slate-900/30">
         {/* Time grid lines */}
         {timeGridLines.map((topPercent, idx) => (
           <div
@@ -83,9 +83,10 @@ export const ScheduleWeekDayComponent: FC<{
           <div
             key={`${meeting.crn}-${idx}`}
             title={`${meeting.subjectCode} ${meeting.courseNumber} - ${meeting.courseName}\n${formatTime12Hour(meeting.start_time)} - ${formatTime12Hour(meeting.end_time)}`}
-            className="absolute left-0 right-0 mx-1 
-                         bg-slate-700 border border-blue-800/10 rounded p-1
-                         overflow-hidden cursor-pointer hover:bg-slate-900 transition-colors"
+            className="
+              absolute left-0 right-0 mx-1 
+              bg-slate-700 border border-blue-800/10 rounded p-1
+              overflow-hidden cursor-pointer hover:bg-slate-950 hover:border-slate-700 transition-colors"
             style={{
               top: `${meeting.topPercent}%`,
               height: `${meeting.heightPercent}%`,

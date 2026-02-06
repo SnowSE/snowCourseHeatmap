@@ -78,6 +78,7 @@ console.log("Auth token copied to clipboard");`
             await navigator.clipboard.writeText(textToCopy)
             setCopied(true)
             setTimeout(() => setCopied(false), 2000)
+            window.open('https://my.snow.edu', '_blank')
           }}
           className="absolute right-1 top-1 rounded bg-blue-900 px-3 py-1 text-xs font-medium text-white hover:bg-blue-800 transition-colors flex items-center gap-1"
         >

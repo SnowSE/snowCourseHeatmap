@@ -1,11 +1,6 @@
-<<<<<<< HEAD
-import { Fragment, useState } from 'react'
-import { ScheduleOwnerList } from './ScheduleOwnerList'
-=======
 import { useState } from 'react'
-import { ProfessorList, CourseOwner } from './ProfessorList'
->>>>>>> ac03036839730726aebc1f7a189dbba28371aa0a
-import { ProfessorWeekDisplay } from './ProfessorWeekDisplay'
+import { ScheduleOwnerList, CourseOwner } from './ScheduleOwnerList'
+import { ProfessorWeekDisplay } from './week/ProfessorWeekDisplay'
 
 const serializeCourseOwner = (owner: CourseOwner): string => {
   if (owner.professorName) return `professor:${owner.professorName}`
@@ -71,17 +66,10 @@ export const ScheduleViewer = () => {
             Clear Selection ({selectedCourseOwners.size})
           </button>
         </div>
-<<<<<<< HEAD
         <ScheduleOwnerList
-          filter={professorFilter}
-          selectedProfessors={selectedProfessors}
-          onToggleProfessor={toggleProfessor}
-=======
-        <ProfessorList
           filter={filter}
           selectedCourseOwners={selectedCourseOwners}
           onToggleCourseOwner={toggleCourseOwner}
->>>>>>> ac03036839730726aebc1f7a189dbba28371aa0a
         />
       </div>
       <div className=" flex flex-wrap flex-1 overflow-y-auto">

@@ -56,7 +56,7 @@ export const ScheduleWeekDisplay: FC<ScheduleWeekDisplayProps> = ({
   return (
     <div className="flex gap-3 h-125">
       <ClassesWeekTimeLabels startTime={start} endTime={end} />
-      <div className="grid grid-cols-5 gap-3 flex-1 h-full">
+      <div className="grid grid-cols-5 gap-1 flex-1 h-full">
         {days.map((day) => (
           <ScheduleWeekDayComponent
             key={day}
