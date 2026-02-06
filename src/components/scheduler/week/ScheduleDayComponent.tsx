@@ -114,7 +114,7 @@ export const ScheduleDayComponent: FC<{
 
   return (
     <div className="flex flex-col gap-2 h-full">
-      <h3 className="text-lg font-semibold text-blue-300 text-center">{day}</h3>
+      <h3 className="text-lg font-semibold text-slate-600 text-center">{day}</h3>
       <DroppableDay
         day={day}
         dayStartMinutes={dayStartMinutes}
