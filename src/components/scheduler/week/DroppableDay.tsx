@@ -93,7 +93,7 @@ export const DroppableDay: FC<DroppableDayProps> = ({
       {/* Hover indicator */}
       {hoverPosition && (
         <div
-          className="absolute left-0 right-0 pointer-events-none"
+          className="absolute left-0 right-0 pointer-events-none z-50"
           style={{ top: `${hoverPosition.percentY}%` }}
         >
           <div className="relative">
