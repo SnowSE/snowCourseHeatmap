@@ -4,10 +4,7 @@ import { ConflictInfo } from '@/components/scheduler/contexts/CourseChangesConte
 export const DisplayConflicts: FC<{
   conflicts: ConflictInfo[]
   targetProfessor: string
-}> = ({
-  conflicts,
-  targetProfessor,
-}) => {
+}> = ({ conflicts, targetProfessor }) => {
   if (conflicts.length === 0) {
     return null
   }
