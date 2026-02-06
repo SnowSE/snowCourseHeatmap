@@ -1,27 +1,47 @@
+<<<<<<< HEAD
 import { Fragment, useState } from 'react'
 import { ScheduleOwnerList } from './ScheduleOwnerList'
+=======
+import { useState } from 'react'
+import { ProfessorList, CourseOwner } from './ProfessorList'
+>>>>>>> ac03036839730726aebc1f7a189dbba28371aa0a
 import { ProfessorWeekDisplay } from './ProfessorWeekDisplay'
 
+const serializeCourseOwner = (owner: CourseOwner): string => {
+  if (owner.professorName) return `professor:${owner.professorName}`
+  if (owner.roomName) return `room:${owner.roomName}`
+  return ''
+}
+
+const deserializeCourseOwner = (key: string): CourseOwner | null => {
+  const [type, ...nameParts] = key.split(':')
+  const name = nameParts.join(':')
+  if (type === 'professor') return { professorName: name }
+  if (type === 'room') return { roomName: name }
+  return null
+}
+
 export const ScheduleViewer = () => {
-  const [selectedProfessors, setSelectedProfessors] = useState<Set<string>>(
+  const [selectedCourseOwners, setSelectedCourseOwners] = useState<Set<string>>(
     new Set(),
   )
-  const [professorFilter, setProfessorFilter] = useState('')
+  const [filter, setFilter] = useState('')
 
-  const toggleProfessor = (professorName: string) => {
-    setSelectedProfessors((prev) => {
+  const toggleCourseOwner = (owner: CourseOwner) => {
+    const key = serializeCourseOwner(owner)
+    setSelectedCourseOwners((prev) => {
       const next = new Set(prev)
-      if (next.has(professorName)) {
-        next.delete(professorName)
+      if (next.has(key)) {
+        next.delete(key)
       } else {
-        next.add(professorName)
+        next.add(key)
       }
       return next
     })
   }
 
-  const clearAllProfessors = () => {
-    setSelectedProfessors(new Set())
+  const clearAllSelections = () => {
+    setSelectedCourseOwners(new Set())
   }
 
   return (
@@ -30,9 +50,9 @@ export const ScheduleViewer = () => {
         <div className="space-y-3 pb-3">
           <input
             type="text"
-            value={professorFilter}
-            onChange={(e) => setProfessorFilter(e.target.value)}
-            placeholder="Search"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            placeholder="Search professors or rooms"
             className="w-full rounded-lg 
                        border border-white/20 bg-white/10 
                        px-4 py-2 text-white placeholder-white/50 
@@ -40,29 +60,40 @@ export const ScheduleViewer = () => {
                        focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
           />
           <button
-            onClick={clearAllProfessors}
-            disabled={selectedProfessors.size === 0}
+            onClick={clearAllSelections}
+            disabled={selectedCourseOwners.size === 0}
             className="w-full rounded-lg 
                        border border-white/20 bg-red-500/20 
                        hover:bg-red-500/30 
                        disabled:opacity-50 disabled:cursor-not-allowed 
                        transition-colors"
           >
-            Clear Selection ({selectedProfessors.size})
+            Clear Selection ({selectedCourseOwners.size})
           </button>
         </div>
+<<<<<<< HEAD
         <ScheduleOwnerList
           filter={professorFilter}
           selectedProfessors={selectedProfessors}
           onToggleProfessor={toggleProfessor}
+=======
+        <ProfessorList
+          filter={filter}
+          selectedCourseOwners={selectedCourseOwners}
+          onToggleCourseOwner={toggleCourseOwner}
+>>>>>>> ac03036839730726aebc1f7a189dbba28371aa0a
         />
       </div>
       <div className=" flex flex-wrap flex-1 overflow-y-auto">
-        {Array.from(selectedProfessors).map((professor) => (
-          <div key={professor} className=" p-3">
-            <ProfessorWeekDisplay professorName={professor} />
-          </div>
-        ))}
+        {Array.from(selectedCourseOwners).map((key) => {
+          const owner = deserializeCourseOwner(key)
+          if (!owner) return null
+          return (
+            <div key={key} className=" p-3">
+              <ProfessorWeekDisplay owner={owner} />
+            </div>
+          )
+        })}
       </div>
     </div>
   )
