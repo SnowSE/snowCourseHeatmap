@@ -18,7 +18,7 @@ export const Header = () => {
   return (
     <>
       <header className=" ">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="max-w-7xl mx-auto px-6 pb-4">
           <div className="flex items-center justify-between gap-8">
             <nav className="flex gap-1">
               <Link

@@ -53,6 +53,12 @@ export const ScheduleOwnerWeekDisplay: FC<{
     owner.studentScheduleName ||
     'Unknown'
 
+  // Calculate total credits for professor
+  const totalCredits = ownerCourses.reduce(
+    (sum, course) => sum + (course.credit_hours || 0),
+    0,
+  )
+
   const showDropIndicator =
     ownerNameBeingDragged && ownerNameBeingDragged !== ownerKey && isHovering
 
@@ -90,7 +96,12 @@ export const ScheduleOwnerWeekDisplay: FC<{
           }}
           onDragEnd={() => handleDrop(ownerKey)}
         >
-          {displayName}
+          {displayName}{' '}
+          {owner.professorName && (
+            <span className="text-xs font-bold text-slate-400">
+              {totalCredits}
+            </span>
+          )}
         </h2>
         <button
           onClick={() => removeCourseOwner(owner)}

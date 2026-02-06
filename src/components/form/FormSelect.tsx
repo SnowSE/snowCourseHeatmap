@@ -17,14 +17,11 @@ export function FormSelect({
         id={id}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className={`
-          w-full peer
-          rounded-lg
-          border border-white/20
-          bg-white/10 backdrop-blur-sm
-          px-4 py-3
-          focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent
-        `}
+        className="w-full rounded-lg pt-4 px-4 pb-1
+                   border border-slate-700 bg-slate-900 
+                   text-white 
+                   backdrop-blur-sm 
+                   focus:outline-none focus:ring-2 focus:ring-slate-700 focus:border-transparent"
       >
         <option value=""></option>
         {options.map((option) => (

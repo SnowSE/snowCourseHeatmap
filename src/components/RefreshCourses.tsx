@@ -70,7 +70,7 @@ console.log("Auth token copied to clipboard");`
   return (
     <div className="">
       <div className="relative mb-4">
-        <pre className="text-wrap p-1 bg-slate-950 text-sm rounded-md pr-20">
+        <pre className="p-1 bg-slate-950 text-sm rounded-md pr-20 overflow-x-auto">
           {textToCopy}
         </pre>
         <button
@@ -134,7 +134,6 @@ console.log("Auth token copied to clipboard");`
           }}
           autoComplete="off"
           spellCheck={false}
-          className="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-60"
         />
 
         <button

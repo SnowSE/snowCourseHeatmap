@@ -26,7 +26,7 @@ export const CourseChangesList: FC = () => {
   }, [courseChanges, courses, studentSchedules, getConflictsForChange])
 
   return (
-    <div className="overflow-y-auto bg-slate-950/50 shadow-xl rounded-lg">
+    <div className=" bg-slate-950/50 shadow-xl rounded-lg h-full flex flex-col">
       <div className="px-3 py-2 flex items-center justify-between">
         <h3 className="">Course Changes ({courseChanges.length})</h3>
         {courseChanges.length > 0 && (
@@ -38,7 +38,7 @@ export const CourseChangesList: FC = () => {
           </button>
         )}
       </div>
-      <div className="px-3 pb-3 space-y-3">
+      <div className="px-3 pb-3 space-y-3  overflow-y-auto">    
         {changesWithOriginal.map(({ change, original, conflicts }, idx) => (
           <div
             key={`${change.crn}-${change.timestamp}-${idx}`}

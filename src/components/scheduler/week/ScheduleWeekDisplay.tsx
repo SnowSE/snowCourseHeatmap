@@ -13,7 +13,6 @@ export const ScheduleWeekDisplay: FC<{
 }> = ({ courses, owner, onSelectProfessor, onSelectRoom }) => {
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
 
-  // Separate online courses (courses with no meeting days or all meetings have empty days)
   const { regularCourses, onlineCourses } = useMemo(() => {
     const regular: Course[] = []
     const online: Course[] = []
@@ -33,7 +32,58 @@ export const ScheduleWeekDisplay: FC<{
     return { regularCourses: regular, onlineCourses: online }
   }, [courses])
 
-  const meetingTimesByDay = useMemo(
+  const meetingTimesByDay = useMeetingTimesByDay(days, regularCourses)
+
+  const start = '07:00'
+  const end = '17:00'
+
+  return (
+    <div className="flex gap-3 h-125">
+      <ClassesWeekTimeLabels startTime={start} endTime={end} />
+      <div className="grid grid-cols-5 gap-1 flex-1 h-full">
+        {days.map((day) => (
+          <ScheduleDayComponent
+            key={day}
+            day={day}
+            meetings={meetingTimesByDay[day]}
+            dayStartTime={start}
+            dayEndTime={end}
+            owner={owner}
+            onSelectProfessor={onSelectProfessor}
+            onSelectRoom={onSelectRoom}
+          />
+        ))}
+      </div>
+      {onlineCourses.length > 0 && <OnlineCoursesDay courses={onlineCourses} />}
+    </div>
+  )
+}
+
+type MeetingTime = {
+  courseName: string
+  subjectCode: string
+  courseNumber: string
+  crn: string
+  term: string
+  start_time: string
+  end_time: string
+  meet_info: {
+    days: string[]
+    start_time: string | null
+    end_time: string | null
+    building: string | null
+    building_code: string | null
+    room: string | null
+  }[]
+  instructors?: string[]
+  creditHours?: number
+}
+
+function useMeetingTimesByDay(
+  days: string[],
+  regularCourses: Course[],
+): Record<string, MeetingTime[]> {
+  return useMemo(
     () =>
       days.reduce(
         (acc, day) => {
@@ -60,52 +110,8 @@ export const ScheduleWeekDisplay: FC<{
             .sort((a, b) => a.start_time.localeCompare(b.start_time))
           return acc
         },
-        {} as Record<
-          string,
-          {
-            courseName: string
-            subjectCode: string
-            courseNumber: string
-            crn: string
-            term: string
-            start_time: string
-            end_time: string
-            meet_info: {
-              days: string[]
-              start_time: string | null
-              end_time: string | null
-              building: string | null
-              building_code: string | null
-              room: string | null
-            }[]
-            instructors?: string[]
-          }[]
-        >,
+        {} as Record<string, MeetingTime[]>,
       ),
     [days, regularCourses],
-  )
-
-  const start = '07:00'
-  const end = '17:00'
-
-  return (
-    <div className="flex gap-3 h-125">
-      <ClassesWeekTimeLabels startTime={start} endTime={end} />
-      <div className="grid grid-cols-5 gap-1 flex-1 h-full">
-        {days.map((day) => (
-          <ScheduleDayComponent
-            key={day}
-            day={day}
-            meetings={meetingTimesByDay[day]}
-            dayStartTime={start}
-            dayEndTime={end}
-            owner={owner}
-            onSelectProfessor={onSelectProfessor}
-            onSelectRoom={onSelectRoom}
-          />
-        ))}
-      </div>
-      {onlineCourses.length > 0 && <OnlineCoursesDay courses={onlineCourses} />}
-    </div>
   )
 }

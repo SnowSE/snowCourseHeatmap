@@ -10,7 +10,6 @@ export const VisualizeChanges: FC<{
   return (
     <div className="grid grid-cols-[1fr_auto_1fr] gap-3 text-sm items-center">
       <div className="space-y-2">
-        {/* Professor - only if changed */}
         {original.instructors.map((i) => i.name).join(', ') !==
           change.targetProfessor && (
           <div className="text-slate-200/80 truncate">
@@ -18,7 +17,6 @@ export const VisualizeChanges: FC<{
           </div>
         )}
 
-        {/* Meeting Times - only if changed */}
         {original.meet_info.map((originalMeet, meetIdx) => {
           const newMeet = change.meet_info[meetIdx]
           const timesChanged =

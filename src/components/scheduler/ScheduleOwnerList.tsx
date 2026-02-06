@@ -4,11 +4,10 @@ import { useStudentSchedules } from '@/hooks/useStudentSchedules'
 import { useState, useEffect, useDeferredValue, useRef, FC } from 'react'
 import { useCourseOwner } from '@/components/scheduler/contexts/CourseOwnerContext'
 
-interface ProfessorListProps {
-  filter: string
-}
 
-export const ScheduleOwnerList: FC<ProfessorListProps> = ({ filter }) => {
+export const ScheduleOwnerList: FC<{
+  filter: string
+}> = ({ filter }) => {
   const { selectedCourseOwners, toggleCourseOwner } = useCourseOwner()
   const { data: courses = [] } = useCoursesInCurrentTerm()
   const { data: studentSchedules = [] } = useStudentSchedules()

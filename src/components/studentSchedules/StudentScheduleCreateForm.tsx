@@ -3,7 +3,6 @@ import { TextInput } from '@/components/form/TextInput'
 
 export const StudentScheduleCreateForm = ({
   onSubmit,
-  onCancel,
   isSubmitting,
 }: {
   onSubmit: (name: string) => void
