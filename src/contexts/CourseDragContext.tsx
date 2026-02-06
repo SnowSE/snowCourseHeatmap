@@ -1,17 +1,11 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
 import { type z } from 'zod'
 import { MeetInfoSchema } from '../schemas/courses'
+import { useCourseChanges } from './CourseChangesContext'
 
 const CourseDragContext = createContext<
   | {
       isDragging: boolean
-      courseChanges: Array<{
-        crn: string
-        term: string
-        targetProfessor: string
-        meet_info: z.infer<typeof MeetInfoSchema>[]
-        timestamp: number
-      }>
       handleDragStart: (
         crn: string,
         term: string,
@@ -23,13 +17,13 @@ const CourseDragContext = createContext<
         targetProfessor?: string,
         targetRoom?: string,
       ) => void
-      removeCourseChange: (crn: string) => void
-      clearCourseChanges: () => void
     }
   | undefined
 >(undefined)
 
 export function CourseDragProvider({ children }: { children: ReactNode }) {
+  const { addOrUpdateCourseChange } = useCourseChanges()
+
   const [dragState, setDragState] = useState<{
     isDragging: boolean
     crn: string | null
@@ -41,16 +35,6 @@ export function CourseDragProvider({ children }: { children: ReactNode }) {
     term: null,
     originalMeetInfo: null,
   })
-
-  const [courseChanges, setCourseChanges] = useState<
-    Array<{
-      crn: string
-      term: string
-      targetProfessor: string
-      meet_info: z.infer<typeof MeetInfoSchema>[]
-      timestamp: number
-    }>
-  >([])
 
   const handleDragStart = (
     crn: string,
@@ -99,50 +83,25 @@ export function CourseDragProvider({ children }: { children: ReactNode }) {
           : (originalMeet?.room ?? null),
       }
 
-      // Record the course change (replace existing change for same CRN if exists)
-      setCourseChanges((prev) => {
-        const existingIndex = prev.findIndex(
-          (change) => change.crn === dragState.crn,
-        )
-        const newChange = {
-          crn: dragState.crn!,
-          term: dragState.term!,
-          targetProfessor: targetProfessor || '',
-          meet_info: [newMeetInfo],
-          timestamp: Date.now(),
-        }
-
-        if (existingIndex >= 0) {
-          // Replace existing change
-          const updated = [...prev]
-          updated[existingIndex] = newChange
-          return updated
-        } else {
-          return [...prev, newChange]
-        }
+      // Record the course change using the changes context
+      addOrUpdateCourseChange({
+        crn: dragState.crn,
+        term: dragState.term,
+        targetProfessor: targetProfessor || '',
+        meet_info: [newMeetInfo],
+        timestamp: Date.now(),
       })
     }
 
     handleDragEnd()
   }
 
-  const removeCourseChange = (crn: string) => {
-    setCourseChanges((prev) => prev.filter((change) => change.crn !== crn))
-  }
-
-  const clearCourseChanges = () => {
-    setCourseChanges([])
-  }
-
   return (
     <CourseDragContext.Provider
       value={{
         isDragging: dragState.isDragging,
-        courseChanges,
         handleDragStart,
         handleDrop,
-        removeCourseChange,
-        clearCourseChanges,
       }}
     >
       {children}

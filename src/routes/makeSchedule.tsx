@@ -1,6 +1,7 @@
 import { ScheduleViewer } from '@/components/scheduler/ScheduleViewer'
 import { CourseDragProvider } from '@/contexts/CourseDragContext'
 import { CourseOwnerProvider } from '@/contexts/CourseOwnerContext'
+import { CourseChangesProvider } from '@/contexts/CourseChangesContext'
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/makeSchedule')({
@@ -11,9 +12,11 @@ function MakeSchedule() {
   return (
     <div className="w-full text-blue-100 flex flex-col h-full">
       <CourseOwnerProvider>
-        <CourseDragProvider>
-          <ScheduleViewer />
-        </CourseDragProvider>
+        <CourseChangesProvider>
+          <CourseDragProvider>
+            <ScheduleViewer />
+          </CourseDragProvider>
+        </CourseChangesProvider>
       </CourseOwnerProvider>
     </div>
   )

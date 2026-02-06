@@ -22,7 +22,10 @@ export const DraggableCourse: FC<{
   meetInfo: z.infer<typeof MeetInfoSchema>[]
   topPercent: number
   heightPercent: number
+  leftPercent?: number
+  widthPercent?: number
   instructors?: string[]
+  hasConflict?: boolean
   onSelectProfessor?: (professor: string) => void
   onSelectRoom?: (room: string) => void
 }> = ({
@@ -36,7 +39,10 @@ export const DraggableCourse: FC<{
   meetInfo,
   topPercent,
   heightPercent,
+  leftPercent = 0,
+  widthPercent = 100,
   instructors = [],
+  hasConflict = false,
   onSelectProfessor,
   onSelectRoom,
 }) => {
@@ -74,17 +80,33 @@ export const DraggableCourse: FC<{
         }}
         onContextMenu={handleContextMenu}
         onDoubleClick={handleDoubleClick}
-        title={`${subjectCode} ${courseNumber} - ${courseName}\n${formatTime12Hour(startTime)} - ${formatTime12Hour(endTime)}`}
-        className="
-        absolute left-0 right-0 mx-1 
-        bg-slate-700 border border-blue-800/10 rounded p-1
-        overflow-hidden cursor-move hover:bg-slate-950 hover:border-slate-700 transition-colors"
+        title={`${subjectCode} ${courseNumber} - ${courseName}\n${formatTime12Hour(startTime)} - ${formatTime12Hour(endTime)}${hasConflict ? '\n⚠️ CONFLICT: Schedule overlap detected' : ''}`}
+        className={`
+        absolute 
+        ${hasConflict ? 'bg-red-900/70 border-red-500' : 'bg-slate-700 border-blue-800/10'} 
+        border rounded p-1
+        overflow-hidden cursor-move hover:bg-slate-950 hover:border-slate-700 transition-colors`}
         style={{
           top: `${topPercent}%`,
           height: `${heightPercent}%`,
+          left: `${leftPercent}%`,
+          width: `${widthPercent}%`,
+          paddingLeft: leftPercent > 0 ? '0.125rem' : '0.25rem',
+          paddingRight:
+            leftPercent + widthPercent < 100 ? '0.125rem' : '0.25rem',
         }}
       >
-        <div className="text-xs truncate">{courseName}</div>
+        <div className="flex items-start justify-between gap-1">
+          <div className="text-xs truncate flex-1">{courseName}</div>
+          {hasConflict && (
+            <span
+              className="text-red-300 text-xs shrink-0"
+              title="Schedule conflict"
+            >
+              ⚠️
+            </span>
+          )}
+        </div>
         <div className="text-xs">
           {subjectCode} {courseNumber}
         </div>
