@@ -98,9 +98,12 @@ export function CourseDragProvider({ children }: { children: ReactNode }) {
 
       // Record the course change using the changes context
       // If dropped on student schedule, preserve original professor
+      // If dropped on a room (targetRoom provided but no targetProfessor), preserve original professor
       const professorToUse = isStudentSchedule
         ? dragState.originalProfessor || ''
-        : targetProfessor || ''
+        : targetRoom && !targetProfessor
+          ? dragState.originalProfessor || ''
+          : targetProfessor || ''
 
       addOrUpdateCourseChange({
         crn: dragState.crn,
