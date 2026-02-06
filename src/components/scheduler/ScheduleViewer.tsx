@@ -1,16 +1,13 @@
-import { Fragment, useState } from 'react'
+import { useState } from 'react'
 import { ScheduleOwnerList } from './ScheduleOwnerList'
 import { ScheduleOwnerWeekDisplay } from './week/ScheduleOwnerWeekDisplay'
 import { CourseChangesList } from './changes/CourseChangesList'
 import { useCourseOwner } from '@/components/scheduler/contexts/CourseOwnerContext'
-import { useCourseChanges } from '@/components/scheduler/contexts/CourseChangesContext'
 
 export const ScheduleViewer = () => {
   const { selectedCourseOwners, clearAllCourseOwners, deserializeCourseOwner } =
     useCourseOwner()
   const [filter, setFilter] = useState('')
-
-  const { courseChanges } = useCourseChanges()
 
   return (
     <div className="h-full flex">

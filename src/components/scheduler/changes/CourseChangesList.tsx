@@ -13,6 +13,9 @@ export const CourseChangesList: FC = () => {
   const { data: studentSchedules = [] } = useStudentSchedules()
   const { getConflictsForChange } = useConflictDetection()
 
+
+  // console.log("courses without professor:", courses.filter(c => c.instructors.length === 0));
+
   const changesWithOriginal = useMemo(() => {
     const courseMap = new Map(courses.map((course) => [course.crn, course]))
 

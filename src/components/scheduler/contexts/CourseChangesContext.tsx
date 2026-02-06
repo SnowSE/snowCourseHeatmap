@@ -1,4 +1,10 @@
-import { createContext, useContext, useState, type ReactNode } from 'react'
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  type ReactNode,
+} from 'react'
 import { type z } from 'zod'
 import { MeetInfoSchema, type Course } from '../../../schemas/courses'
 import { type StudentSchedule } from '@/schemas/studentSchedule'
@@ -36,8 +42,36 @@ export function timeToMinutes(time: string): number {
   return hours * 60 + minutes
 }
 
+const STORAGE_KEY = 'courseChanges'
+
+// Load course changes from localStorage
+function loadCourseChangesFromStorage(): CourseChange[] {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY)
+    return stored ? JSON.parse(stored) : []
+  } catch (error) {
+    console.error('Failed to load course changes from localStorage:', error)
+    return []
+  }
+}
+
+// Save course changes to localStorage
+function saveCourseChangesToStorage(changes: CourseChange[]): void {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(changes))
+  } catch (error) {
+    console.error('Failed to save course changes to localStorage:', error)
+  }
+}
+
 export function CourseChangesProvider({ children }: { children: ReactNode }) {
-  const [courseChanges, setCourseChanges] = useState<CourseChange[]>([])
+  const [courseChanges, setCourseChanges] = useState<CourseChange[]>(() =>
+    loadCourseChangesFromStorage(),
+  )
+
+  useEffect(() => {
+    saveCourseChangesToStorage(courseChanges)
+  }, [courseChanges])
 
   const addOrUpdateCourseChange = (change: CourseChange) => {
     setCourseChanges((prev) => {
