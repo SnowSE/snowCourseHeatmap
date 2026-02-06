@@ -1,13 +1,16 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { ScheduleOwnerList } from './ScheduleOwnerList'
 import { ScheduleOwnerWeekDisplay } from './week/ScheduleOwnerWeekDisplay'
 import { CourseChangesList } from './CourseChangesList'
 import { useCourseOwner } from '@/contexts/CourseOwnerContext'
+import { useCourseChanges } from '@/contexts/CourseChangesContext'
 
 export const ScheduleViewer = () => {
   const { selectedCourseOwners, clearAllCourseOwners, deserializeCourseOwner } =
     useCourseOwner()
   const [filter, setFilter] = useState('')
+
+  const { courseChanges } = useCourseChanges()
 
   return (
     <div className="h-full flex">
@@ -38,20 +41,22 @@ export const ScheduleViewer = () => {
         </div>
         <ScheduleOwnerList filter={filter} />
       </div>
-      <div className=" flex flex-wrap flex-1 overflow-y-auto">
+      <div className=" flex-1 flex flex-wrap content-start overflow-y-auto">
         {Array.from(selectedCourseOwners).map((key) => {
           const owner = deserializeCourseOwner(key)
           if (!owner) return null
           return (
-            <div key={key} className=" p-3">
+            <div key={key} className="p-2">
               <ScheduleOwnerWeekDisplay owner={owner} />
             </div>
           )
         })}
       </div>
-      <div className="w-96">
-        <CourseChangesList />
-      </div>
+      {courseChanges.length > 0 && (
+        <div className="w-96">
+          <CourseChangesList />
+        </div>
+      )}
     </div>
   )
 }
