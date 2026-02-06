@@ -2,19 +2,28 @@ import { useCoursesInCurrentTerm } from '@/hooks/useCourses'
 import { FC, useMemo } from 'react'
 import { ClassesWeekDayComponent } from './ProfessorDayComponent'
 import { ClassesWeekTimeLabels } from './ClassesWeekTimeLabels'
+import { CourseOwner } from './ProfessorList'
 
-export const ProfessorWeekDisplay: FC<{ professorName: string }> = ({
-  professorName,
-}) => {
+export const ProfessorWeekDisplay: FC<{ owner: CourseOwner }> = ({ owner }) => {
   const { data: courses = [] } = useCoursesInCurrentTerm()
 
-  const professorCourses = useMemo(
-    () =>
-      courses.filter((course) =>
-        course.instructors.some((inst) => inst.name === professorName),
-      ),
-    [courses, professorName],
-  )
+  const ownerCourses = useMemo(() => {
+    if (owner.professorName) {
+      return courses.filter((course) =>
+        course.instructors.some((inst) => inst.name === owner.professorName),
+      )
+    } else if (owner.roomName) {
+      return courses.filter((course) =>
+        course.meet_info.some((meet) => {
+          const roomName = meet.building
+            ? `${meet.building} ${meet.room}`
+            : meet.room
+          return roomName === owner.roomName
+        }),
+      )
+    }
+    return []
+  }, [courses, owner])
 
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
 
@@ -22,7 +31,7 @@ export const ProfessorWeekDisplay: FC<{ professorName: string }> = ({
     () =>
       days.reduce(
         (acc, day) => {
-          acc[day] = professorCourses
+          acc[day] = ownerCourses
             .flatMap((course) =>
               course.meet_info
                 .filter(
@@ -53,15 +62,16 @@ export const ProfessorWeekDisplay: FC<{ professorName: string }> = ({
           }[]
         >,
       ),
-    [days, professorCourses],
+    [days, ownerCourses],
   )
 
   const start = '07:00'
   const end = '17:00'
+  const displayName = owner.professorName || owner.roomName || 'Unknown'
 
   return (
     <div className="flex flex-col bg-slate-950 rounded-lg border border-slate-600/50 p-1 py-3">
-      <h2 className="text-center font-bold">{professorName}</h2>
+      <h2 className="text-center font-bold">{displayName}</h2>
       <div className="flex gap-3 h-125 ">
         <ClassesWeekTimeLabels startTime={start} endTime={end} />
         <div className="grid grid-cols-5 gap-3 flex-1 h-full">

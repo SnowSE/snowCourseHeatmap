@@ -1,69 +1,29 @@
 import { useCoursesInCurrentTerm } from '@/hooks/useCourses'
-import {
-  useState,
-  useEffect,
-  useDeferredValue,
-  useRef,
-  useMemo,
-  FC,
-} from 'react'
+import { useCourseOwners } from '@/hooks/useCourseOwners'
+import { useState, useEffect, useDeferredValue, useRef, FC } from 'react'
+
+export interface CourseOwner {
+  professorName?: string
+  roomName?: string
+}
 
 interface ProfessorListProps {
   filter: string
-  selectedProfessors: Set<string>
-  onToggleProfessor: (professorName: string) => void
+  selectedCourseOwners: Set<string> // Serialized CourseOwner (e.g., "professor:John Doe" or "room:Room 101")
+  onToggleCourseOwner: (owner: CourseOwner) => void
 }
 
 export const ProfessorList: FC<ProfessorListProps> = ({
   filter,
-  selectedProfessors,
-  onToggleProfessor,
+  selectedCourseOwners,
+  onToggleCourseOwner,
 }) => {
   const { data: courses = [] } = useCoursesInCurrentTerm()
   const [visibleCount, setVisibleCount] = useState(50)
   const deferredFilter = useDeferredValue(filter)
   const listRef = useRef<HTMLDivElement>(null)
 
-  const coursesByProfessor = useMemo(
-    () =>
-      courses.reduce(
-        (acc, course) => {
-          course.instructors.forEach((instructor) => {
-            if (!acc[instructor.name]) {
-              acc[instructor.name] = []
-            }
-            acc[instructor.name].push(course)
-          })
-          return acc
-        },
-        {} as Record<string, typeof courses>,
-      ),
-    [courses],
-  )
-
-  const professorEntries = useMemo(() => {
-    let entries = Object.entries(coursesByProfessor).map(
-      ([professor, courses]) => ({
-        professor,
-        courses,
-        creditCount: courses.reduce(
-          (sum, course) => sum + course.credit_hours,
-          0,
-        ),
-      }),
-    )
-
-    // Filter by professor name
-    if (deferredFilter) {
-      const searchTerm = deferredFilter.toLowerCase()
-      entries = entries.filter((entry) =>
-        entry.professor.toLowerCase().includes(searchTerm),
-      )
-    }
-
-    // Sort alphabetically by professor name
-    return entries.sort((a, b) => a.professor.localeCompare(b.professor))
-  }, [coursesByProfessor, deferredFilter])
+  const courseOwnerEntries = useCourseOwners(courses, deferredFilter)
 
   useEffect(() => {
     setVisibleCount(50) // Reset visible count when filter changes
@@ -77,15 +37,17 @@ export const ProfessorList: FC<ProfessorListProps> = ({
       const { scrollTop, scrollHeight, clientHeight } = listElement
       // Load more when scrolled to within 200px of bottom
       if (scrollTop + clientHeight >= scrollHeight - 200) {
-        setVisibleCount((prev) => Math.min(prev + 50, professorEntries.length))
+        setVisibleCount((prev) =>
+          Math.min(prev + 50, courseOwnerEntries.length),
+        )
       }
     }
 
     listElement.addEventListener('scroll', handleScroll)
     return () => listElement.removeEventListener('scroll', handleScroll)
-  }, [professorEntries.length])
+  }, [courseOwnerEntries.length])
 
-  const visibleProfessors = professorEntries.slice(0, visibleCount)
+  const visibleOwners = courseOwnerEntries.slice(0, visibleCount)
 
   return (
     <div className="flex flex-col gap-3 flex-1 min-h-0">
@@ -96,27 +58,34 @@ export const ProfessorList: FC<ProfessorListProps> = ({
                    bg-slate-950/30 backdrop-blur-sm 
                    overflow-y-auto flex-1 min-h-0"
       >
-        {visibleProfessors.map(({ professor, courses, creditCount }) => {
-          const isSelected = selectedProfessors.has(professor)
-          return (
-            <div
-              key={professor}
-              onClick={() => onToggleProfessor(professor)}
-              className={`flex justify-between items-center p-2 rounded cursor-pointer transition-all ${
-                isSelected
-                  ? 'bg-blue-600/40 ring-2 ring-blue-500/50 hover:bg-blue-600/50'
-                  : 'hover:bg-slate-800/50'
-              }`}
-            >
-              <div className="text-white font-medium">{professor}</div>
-              <div className="text-sm text-white/70">
-                {creditCount} credit{creditCount !== 1 ? 's' : ''} (
-                {courses.length} course{courses.length !== 1 ? 's' : ''})
+        {visibleOwners.map(
+          ({ key, owner, displayName, type, courses, creditCount }) => {
+            const isSelected = selectedCourseOwners.has(key)
+            return (
+              <div
+                key={key}
+                onClick={() => onToggleCourseOwner(owner)}
+                className={`flex justify-between items-center p-2 rounded cursor-pointer transition-all ${
+                  isSelected
+                    ? 'bg-blue-600/40 ring-2 ring-blue-500/50 hover:bg-blue-600/50'
+                    : 'hover:bg-slate-800/50'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-white font-medium">{displayName}</span>
+                  <span className="text-xs text-white/50 bg-slate-700/50 px-2 py-0.5 rounded">
+                    {type}
+                  </span>
+                </div>
+                <div className="text-sm text-white/70">
+                  {creditCount} credit{creditCount !== 1 ? 's' : ''} (
+                  {courses.length} course{courses.length !== 1 ? 's' : ''})
+                </div>
               </div>
-            </div>
-          )
-        })}
-        {visibleCount < professorEntries.length && (
+            )
+          },
+        )}
+        {visibleCount < courseOwnerEntries.length && (
           <div className="text-center text-white/50 py-4">
             Scroll for more...
           </div>
