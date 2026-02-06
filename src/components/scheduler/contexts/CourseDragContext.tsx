@@ -179,25 +179,13 @@ const calculateEndTime = (
   const newStart = time.split(':').map(Number)
   let durationMinutes: number
 
-  // For 3-credit courses, adjust duration based on day pattern
-  if (creditHours === 3 && newDays) {
-    const mwfDays = ['Monday', 'Wednesday', 'Friday']
-    const tthDays = ['Tuesday', 'Thursday']
-    const isMWFClass = newDays.every((d) => mwfDays.includes(d))
-    const isTTHClass = newDays.every((d) => tthDays.includes(d))
-
-    if (isMWFClass) {
-      // MWF: 1 hour (60 minutes)
-      durationMinutes = 60
-    } else if (isTTHClass) {
-      // T/TH: 1.5 hours (90 minutes)
-      durationMinutes = 90
-    } else {
-      // Use original duration for other patterns
-      durationMinutes = getOriginalDuration(originalMeet)
-    }
+  // If we have credit hours and new days, calculate duration based on meetings per week
+  if (creditHours && newDays && newDays.length > 0) {
+    const numberOfMeetings = newDays.length
+    // Each credit hour = 60 minutes per week, divided by number of meetings
+    durationMinutes = Math.round((creditHours / numberOfMeetings) * 60)
   } else {
-    // Use original duration for non-3-credit courses
+    // Use original duration if credit hours not available
     durationMinutes = getOriginalDuration(originalMeet)
   }
 
