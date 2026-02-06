@@ -3,7 +3,7 @@ import type { z } from 'zod'
 import { MeetInfoSchema } from '@/schemas/courses'
 import { DraggableCourse } from './DraggableCourse'
 import { DroppableDay } from './DroppableDay'
-import { CourseOwner } from '@/contexts/CourseOwnerContext'
+import { CourseOwner } from '@/components/scheduler/contexts/CourseOwnerContext'
 
 interface CourseMeetingInDay {
   courseName: string

@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
 import { type z } from 'zod'
-import { MeetInfoSchema, type Course } from '../schemas/courses'
+import { MeetInfoSchema, type Course } from '../../../schemas/courses'
+import { type StudentSchedule } from '@/schemas/studentSchedule'
+import { useStudentScheduleClassList } from '@/hooks/useStudentSchedules'
 
 export type CourseChange = {
   crn: string
@@ -15,6 +17,8 @@ export type ConflictInfo = {
   conflictingMeetInfo: z.infer<typeof MeetInfoSchema>
   newCourseCrn: string
   newCourseMeetInfo: z.infer<typeof MeetInfoSchema>
+  studentSchedule?: StudentSchedule
+  roomConflict?: boolean
 }
 
 const CourseChangesContext = createContext<
@@ -89,10 +93,10 @@ export function useConflictDetection() {
   const getConflictsForChange = (
     change: CourseChange,
     allCourses: Course[],
+    studentSchedules: StudentSchedule[] = [],
   ): ConflictInfo[] => {
     if (!change.targetProfessor) return []
 
-    // Apply all existing changes plus the new change to get the current state
     const courseMap = new Map(allCourses.map((course) => [course.crn, course]))
     const allChanges = [...courseChanges, change]
 
@@ -118,12 +122,10 @@ export function useConflictDetection() {
       }
     }
 
-    // Get all courses for the target professor
     const professorCourses = Array.from(courseMap.values()).filter((course) =>
       course.instructors.some((inst) => inst.name === change.targetProfessor),
     )
 
-    // Check for time conflicts
     const conflicts: ConflictInfo[] = []
 
     for (const newMeet of change.meet_info) {
@@ -133,20 +135,17 @@ export function useConflictDetection() {
       const newEnd = timeToMinutes(newMeet.end_time)
 
       for (const course of professorCourses) {
-        // Skip the course being changed
         if (course.crn === change.crn) continue
 
         for (const existingMeet of course.meet_info) {
           if (!existingMeet.start_time || !existingMeet.end_time) continue
 
-          // Check if days overlap
           const daysOverlap = newMeet.days.some((day) =>
             existingMeet.days.includes(day),
           )
 
           if (!daysOverlap) continue
 
-          // Check if times overlap
           const existingStart = timeToMinutes(existingMeet.start_time)
           const existingEnd = timeToMinutes(existingMeet.end_time)
 
@@ -161,6 +160,109 @@ export function useConflictDetection() {
               conflictingMeetInfo: existingMeet,
               newCourseCrn: change.crn,
               newCourseMeetInfo: newMeet,
+            })
+          }
+        }
+      }
+    }
+
+    // Check for conflicts with student schedules
+    for (const schedule of studentSchedules) {
+      const scheduleCourses = useStudentScheduleClassList(
+        schedule,
+        Array.from(courseMap.values()),
+      )
+
+      for (const newMeet of change.meet_info) {
+        if (!newMeet.start_time || !newMeet.end_time) continue
+
+        const newStart = timeToMinutes(newMeet.start_time)
+        const newEnd = timeToMinutes(newMeet.end_time)
+
+        for (const course of scheduleCourses) {
+          if (course.crn === change.crn) continue
+
+          for (const existingMeet of course.meet_info) {
+            if (!existingMeet.start_time || !existingMeet.end_time) continue
+
+            const daysOverlap = newMeet.days.some((day) =>
+              existingMeet.days.includes(day),
+            )
+
+            if (!daysOverlap) continue
+
+            const existingStart = timeToMinutes(existingMeet.start_time)
+            const existingEnd = timeToMinutes(existingMeet.end_time)
+
+            const timesOverlap =
+              (newStart >= existingStart && newStart < existingEnd) ||
+              (newEnd > existingStart && newEnd <= existingEnd) ||
+              (newStart <= existingStart && newEnd >= existingEnd)
+
+            if (timesOverlap) {
+              conflicts.push({
+                conflictingCourse: course,
+                conflictingMeetInfo: existingMeet,
+                newCourseCrn: change.crn,
+                newCourseMeetInfo: newMeet,
+                studentSchedule: schedule,
+              })
+            }
+          }
+        }
+      }
+    }
+
+    // Check for room conflicts
+    for (const newMeet of change.meet_info) {
+      if (
+        !newMeet.start_time ||
+        !newMeet.end_time ||
+        !newMeet.building ||
+        !newMeet.room
+      )
+        continue
+
+      const newStart = timeToMinutes(newMeet.start_time)
+      const newEnd = timeToMinutes(newMeet.end_time)
+      const newRoomKey = `${newMeet.building} ${newMeet.room}`
+
+      for (const course of Array.from(courseMap.values())) {
+        if (course.crn === change.crn) continue
+
+        for (const existingMeet of course.meet_info) {
+          if (
+            !existingMeet.start_time ||
+            !existingMeet.end_time ||
+            !existingMeet.building ||
+            !existingMeet.room
+          )
+            continue
+
+          const existingRoomKey = `${existingMeet.building} ${existingMeet.room}`
+          if (newRoomKey !== existingRoomKey) continue
+
+          const daysOverlap = newMeet.days.some((day) =>
+            existingMeet.days.includes(day),
+          )
+
+          if (!daysOverlap) continue
+
+          const existingStart = timeToMinutes(existingMeet.start_time)
+          const existingEnd = timeToMinutes(existingMeet.end_time)
+
+          const timesOverlap =
+            (newStart >= existingStart && newStart < existingEnd) ||
+            (newEnd > existingStart && newEnd <= existingEnd) ||
+            (newStart <= existingStart && newEnd >= existingEnd)
+
+          if (timesOverlap) {
+            conflicts.push({
+              conflictingCourse: course,
+              conflictingMeetInfo: existingMeet,
+              newCourseCrn: change.crn,
+              newCourseMeetInfo: newMeet,
+              roomConflict: true,
             })
           }
         }

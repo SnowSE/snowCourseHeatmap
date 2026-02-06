@@ -1,8 +1,14 @@
 import { useMemo } from 'react'
 import { Course } from '@/schemas/courses'
-import { CourseOwner } from '@/contexts/CourseOwnerContext'
+import { CourseOwner } from '@/components/scheduler/contexts/CourseOwnerContext'
+import { StudentSchedule } from '@/schemas/studentSchedule'
+import { useStudentScheduleClassList } from '@/hooks/useStudentSchedules'
 
-export const useCourseOwners = (courses: Course[], filter: string) => {
+export const useCourseOwners = (
+  courses: Course[],
+  filter: string,
+  studentSchedules: StudentSchedule[] = [],
+) => {
   return useMemo(() => {
     const ownerMap = new Map<
       string,
@@ -40,12 +46,35 @@ export const useCourseOwners = (courses: Course[], filter: string) => {
       })
     })
 
+    studentSchedules.forEach((schedule) => {
+      const key = `studentSchedule:${schedule.name}`
+      if (!ownerMap.has(key)) {
+        ownerMap.set(key, {
+          owner: { studentScheduleName: schedule.name },
+          courses: [],
+        })
+      }
+
+      const matchingCourses = useStudentScheduleClassList(schedule, courses)
+      matchingCourses.forEach((course) => {
+        ownerMap.get(key)!.courses.push(course)
+      })
+    })
+
     let entries = Array.from(ownerMap.entries()).map(
       ([key, { owner, courses }]) => ({
         key,
         owner,
-        displayName: owner.professorName || owner.roomName || '',
-        type: owner.professorName ? ('professor' as const) : ('room' as const),
+        displayName:
+          owner.professorName ||
+          owner.roomName ||
+          owner.studentScheduleName ||
+          '',
+        type: owner.professorName
+          ? ('professor' as const)
+          : owner.roomName
+            ? ('room' as const)
+            : ('studentSchedule' as const),
         courses,
         creditCount: courses.reduce(
           (sum, course) => sum + course.credit_hours,
@@ -65,9 +94,13 @@ export const useCourseOwners = (courses: Course[], filter: string) => {
 
     return entries.sort((a, b) => {
       if (a.type !== b.type) {
-        return a.type === 'professor' ? -1 : 1
+        // Sort order: professor, studentSchedule, room
+        if (a.type === 'professor') return -1
+        if (b.type === 'professor') return 1
+        if (a.type === 'studentSchedule') return -1
+        if (b.type === 'studentSchedule') return 1
       }
       return a.displayName.localeCompare(b.displayName)
     })
-  }, [courses, filter])
+  }, [courses, filter, studentSchedules])
 }

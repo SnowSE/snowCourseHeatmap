@@ -1,9 +1,9 @@
 import { Fragment, useState } from 'react'
 import { ScheduleOwnerList } from './ScheduleOwnerList'
 import { ScheduleOwnerWeekDisplay } from './week/ScheduleOwnerWeekDisplay'
-import { CourseChangesList } from './CourseChangesList'
-import { useCourseOwner } from '@/contexts/CourseOwnerContext'
-import { useCourseChanges } from '@/contexts/CourseChangesContext'
+import { CourseChangesList } from './changes/CourseChangesList'
+import { useCourseOwner } from '@/components/scheduler/contexts/CourseOwnerContext'
+import { useCourseChanges } from '@/components/scheduler/contexts/CourseChangesContext'
 
 export const ScheduleViewer = () => {
   const { selectedCourseOwners, clearAllCourseOwners, deserializeCourseOwner } =
@@ -52,11 +52,9 @@ export const ScheduleViewer = () => {
           )
         })}
       </div>
-      {courseChanges.length > 0 && (
-        <div className="w-96">
-          <CourseChangesList />
-        </div>
-      )}
+      <div className="w-96">
+        <CourseChangesList />
+      </div>
     </div>
   )
 }

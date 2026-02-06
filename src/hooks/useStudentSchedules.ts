@@ -375,3 +375,15 @@ export function useRemoveClassFromSchedule() {
     },
   })
 }
+
+export function useStudentScheduleClassList<
+  T extends { subject_code: string; course_number: string },
+>(schedule: StudentSchedule | null | undefined, courses: T[]): T[] {
+  return courses.filter((course) =>
+    schedule?.classes.some(
+      (studentClass) =>
+        course.subject_code === studentClass.department &&
+        course.course_number === studentClass.course_name,
+    ),
+  )
+}

@@ -1,7 +1,11 @@
 import { useCoursesInCurrentTerm } from '@/hooks/useCourses'
 import { useCourseOwners } from '@/hooks/useCourseOwners'
+import { useStudentSchedules } from '@/hooks/useStudentSchedules'
 import { useState, useEffect, useDeferredValue, useRef, FC } from 'react'
-import { useCourseOwner, CourseOwner } from '@/contexts/CourseOwnerContext'
+import {
+  useCourseOwner,
+  CourseOwner,
+} from '@/components/scheduler/contexts/CourseOwnerContext'
 
 interface ProfessorListProps {
   filter: string
@@ -10,11 +14,16 @@ interface ProfessorListProps {
 export const ScheduleOwnerList: FC<ProfessorListProps> = ({ filter }) => {
   const { selectedCourseOwners, toggleCourseOwner } = useCourseOwner()
   const { data: courses = [] } = useCoursesInCurrentTerm()
+  const { data: studentSchedules = [] } = useStudentSchedules()
   const [visibleCount, setVisibleCount] = useState(50)
   const deferredFilter = useDeferredValue(filter)
   const listRef = useRef<HTMLDivElement>(null)
 
-  const courseOwnerEntries = useCourseOwners(courses, deferredFilter)
+  const courseOwnerEntries = useCourseOwners(
+    courses,
+    deferredFilter,
+    studentSchedules,
+  )
 
   useEffect(() => {
     setVisibleCount(50) // Reset visible count when filter changes

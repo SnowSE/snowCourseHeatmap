@@ -1,31 +1,53 @@
 import { useCoursesInCurrentTerm } from '@/hooks/useCourses'
+import {
+  useStudentSchedules,
+  useStudentScheduleClassList,
+} from '@/hooks/useStudentSchedules'
 import { FC, useMemo } from 'react'
 import { ScheduleWeekDisplay } from './ScheduleWeekDisplay'
-import { CourseOwner, useCourseOwner } from '@/contexts/CourseOwnerContext'
-import { useCourseChanges } from '@/contexts/CourseChangesContext'
+import {
+  CourseOwner,
+  useCourseOwner,
+} from '@/components/scheduler/contexts/CourseOwnerContext'
+import { useCourseChanges } from '@/components/scheduler/contexts/CourseChangesContext'
 
 export const ScheduleOwnerWeekDisplay: FC<{
   owner: CourseOwner
 }> = ({ owner }) => {
   const { removeCourseOwner, addCourseOwner } = useCourseOwner()
   const { data: courses = [] } = useCoursesInCurrentTerm()
+  const { data: studentSchedules = [] } = useStudentSchedules()
 
   const { courseChanges } = useCourseChanges()
 
   const coursesWithChanges = useMemo(() => {
     if (!courseChanges || courseChanges.length === 0) {
-      console.log('[ScheduleOwnerWeekDisplay] No changes, returning original courses:', courses.length)
+      console.log(
+        '[ScheduleOwnerWeekDisplay] No changes, returning original courses:',
+        courses.length,
+      )
       return courses
     }
 
     const courseMap = new Map(courses.map((course) => [course.crn, course]))
-    console.log('[ScheduleOwnerWeekDisplay] Starting with courses:', courseMap.size)
-    console.log('[ScheduleOwnerWeekDisplay] Applying changes:', courseChanges.length)
+    console.log(
+      '[ScheduleOwnerWeekDisplay] Starting with courses:',
+      courseMap.size,
+    )
+    console.log(
+      '[ScheduleOwnerWeekDisplay] Applying changes:',
+      courseChanges.length,
+    )
 
     for (const change of courseChanges) {
       const existingCourse = courseMap.get(change.crn)
       if (existingCourse) {
-        console.log('[ScheduleOwnerWeekDisplay] Applying change to:', change.crn, 'Target prof:', change.targetProfessor)
+        console.log(
+          '[ScheduleOwnerWeekDisplay] Applying change to:',
+          change.crn,
+          'Target prof:',
+          change.targetProfessor,
+        )
         const updatedCourse = {
           ...existingCourse,
           meet_info: change.meet_info,
@@ -47,7 +69,10 @@ export const ScheduleOwnerWeekDisplay: FC<{
     }
 
     const result = Array.from(courseMap.values())
-    console.log('[ScheduleOwnerWeekDisplay] Final courses after changes:', result.length)
+    console.log(
+      '[ScheduleOwnerWeekDisplay] Final courses after changes:',
+      result.length,
+    )
     return result
   }, [courses, courseChanges])
 
@@ -56,8 +81,21 @@ export const ScheduleOwnerWeekDisplay: FC<{
       const filtered = coursesWithChanges.filter((course) =>
         course.instructors.some((inst) => inst.name === owner.professorName),
       )
-      console.log(`[ScheduleOwnerWeekDisplay] Owner: ${owner.professorName}, Courses after filter:`, filtered.length, 'out of', coursesWithChanges.length)
-      console.log('[ScheduleOwnerWeekDisplay] Filtered courses:', filtered.map(c => `${c.subject_code} ${c.course_number} (${c.instructors.map(i => i.name).join(', ')})`).join(', '))
+      console.log(
+        `[ScheduleOwnerWeekDisplay] Owner: ${owner.professorName}, Courses after filter:`,
+        filtered.length,
+        'out of',
+        coursesWithChanges.length,
+      )
+      console.log(
+        '[ScheduleOwnerWeekDisplay] Filtered courses:',
+        filtered
+          .map(
+            (c) =>
+              `${c.subject_code} ${c.course_number} (${c.instructors.map((i) => i.name).join(', ')})`,
+          )
+          .join(', '),
+      )
       return filtered
     } else if (owner.roomName) {
       const filtered = coursesWithChanges.filter((course) =>
@@ -68,16 +106,39 @@ export const ScheduleOwnerWeekDisplay: FC<{
           return roomName === owner.roomName
         }),
       )
-      console.log(`[ScheduleOwnerWeekDisplay] Owner: ${owner.roomName}, Courses after filter:`, filtered.length)
+      console.log(
+        `[ScheduleOwnerWeekDisplay] Owner: ${owner.roomName}, Courses after filter:`,
+        filtered.length,
+      )
+      return filtered
+    } else if (owner.studentScheduleName) {
+      // Find the student schedule
+      const schedule = studentSchedules.find(
+        (s) => s.name === owner.studentScheduleName,
+      )
+      if (!schedule) {
+        return []
+      }
+
+      // Match courses based on department and course number
+      const filtered = useStudentScheduleClassList(schedule, coursesWithChanges)
+      console.log(
+        `[ScheduleOwnerWeekDisplay] Owner: ${owner.studentScheduleName}, Courses after filter:`,
+        filtered.length,
+      )
       return filtered
     }
     return []
-  }, [coursesWithChanges, owner])
+  }, [coursesWithChanges, owner, studentSchedules])
 
-  const displayName = owner.professorName || owner.roomName || 'Unknown'
+  const displayName =
+    owner.professorName ||
+    owner.roomName ||
+    owner.studentScheduleName ||
+    'Unknown'
 
   return (
-    <div className="flex flex-col bg-slate-900 rounded-lg border border-slate-600/50 p-1 py-3">
+    <div className="flex flex-col bg-slate-900 rounded-lg border border-slate-600/50 py-3 pe-3">
       <div className="flex items-center justify-between px-2 mb-1">
         <h2 className="text-center font-bold flex-1">{displayName}</h2>
         <button

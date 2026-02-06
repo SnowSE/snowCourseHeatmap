@@ -1,6 +1,6 @@
 import { FC, ReactNode, useState } from 'react'
-import { useCourseDrag } from '@/contexts/CourseDragContext'
-import { CourseOwner } from '@/contexts/CourseOwnerContext'
+import { useCourseDrag } from '@/components/scheduler/contexts/CourseDragContext'
+import { CourseOwner } from '@/components/scheduler/contexts/CourseOwnerContext'
 
 interface DroppableDayProps {
   day: string
@@ -71,7 +71,14 @@ export const DroppableDay: FC<DroppableDayProps> = ({
         const minutes = roundedMinutes % 60
         const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
 
-        handleDrop(day, timeString, owner.professorName, owner.roomName)
+        const isStudentSchedule = !!owner.studentScheduleName
+        handleDrop(
+          day,
+          timeString,
+          owner.professorName,
+          owner.roomName,
+          isStudentSchedule,
+        )
       }}
     >
       {/* Time grid lines */}

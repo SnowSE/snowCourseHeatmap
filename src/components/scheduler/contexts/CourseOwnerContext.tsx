@@ -9,6 +9,7 @@ import {
 export interface CourseOwner {
   professorName?: string
   roomName?: string
+  studentScheduleName?: string
 }
 
 const STORAGE_KEY = 'selectedCourseOwners'
@@ -16,6 +17,8 @@ const STORAGE_KEY = 'selectedCourseOwners'
 const serializeCourseOwner = (owner: CourseOwner): string => {
   if (owner.professorName) return `professor:${owner.professorName}`
   if (owner.roomName) return `room:${owner.roomName}`
+  if (owner.studentScheduleName)
+    return `studentSchedule:${owner.studentScheduleName}`
   return ''
 }
 
@@ -24,6 +27,7 @@ const deserializeCourseOwner = (key: string): CourseOwner | null => {
   const name = nameParts.join(':')
   if (type === 'professor') return { professorName: name }
   if (type === 'room') return { roomName: name }
+  if (type === 'studentSchedule') return { studentScheduleName: name }
   return null
 }
 

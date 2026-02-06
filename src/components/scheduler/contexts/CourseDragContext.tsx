@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
 import { type z } from 'zod'
-import { MeetInfoSchema } from '../schemas/courses'
+import { MeetInfoSchema } from '../../../schemas/courses'
 import { useCourseChanges } from './CourseChangesContext'
 
 const CourseDragContext = createContext<
@@ -10,12 +10,14 @@ const CourseDragContext = createContext<
         crn: string,
         term: string,
         originalMeetInfo: z.infer<typeof MeetInfoSchema>[],
+        originalProfessor?: string,
       ) => void
       handleDrop: (
         day: string,
         time: string,
         targetProfessor?: string,
         targetRoom?: string,
+        isStudentSchedule?: boolean,
       ) => void
     }
   | undefined
@@ -29,23 +31,27 @@ export function CourseDragProvider({ children }: { children: ReactNode }) {
     crn: string | null
     term: string | null
     originalMeetInfo: z.infer<typeof MeetInfoSchema>[] | null
+    originalProfessor: string | null
   }>({
     isDragging: false,
     crn: null,
     term: null,
     originalMeetInfo: null,
+    originalProfessor: null,
   })
 
   const handleDragStart = (
     crn: string,
     term: string,
     originalMeetInfo: z.infer<typeof MeetInfoSchema>[],
+    originalProfessor?: string,
   ) => {
     setDragState({
       isDragging: true,
       crn,
       term,
       originalMeetInfo,
+      originalProfessor: originalProfessor || null,
     })
   }
 
@@ -55,6 +61,7 @@ export function CourseDragProvider({ children }: { children: ReactNode }) {
       crn: null,
       term: null,
       originalMeetInfo: null,
+      originalProfessor: null,
     })
   }
 
@@ -63,6 +70,7 @@ export function CourseDragProvider({ children }: { children: ReactNode }) {
     time: string,
     targetProfessor?: string,
     targetRoom?: string,
+    isStudentSchedule?: boolean,
   ) => {
     if (dragState.crn && dragState.term && dragState.originalMeetInfo) {
       const originalMeet = dragState.originalMeetInfo[0]
@@ -73,21 +81,31 @@ export function CourseDragProvider({ children }: { children: ReactNode }) {
         days: originalMeet?.days ?? [day],
         start_time: time,
         end_time: endTime,
-        // Use target room if provided, otherwise preserve original building/room
-        building: targetRoom
-          ? targetRoom.split(' ')[0]
-          : (originalMeet?.building ?? null),
+        // If dropped on student schedule, preserve original room
+        // Otherwise use target room if provided, or preserve original building/room
+        building: isStudentSchedule
+          ? (originalMeet?.building ?? null)
+          : targetRoom
+            ? targetRoom.split(' ')[0]
+            : (originalMeet?.building ?? null),
         building_code: originalMeet?.building_code ?? null,
-        room: targetRoom
-          ? targetRoom.split(' ').slice(1).join(' ')
-          : (originalMeet?.room ?? null),
+        room: isStudentSchedule
+          ? (originalMeet?.room ?? null)
+          : targetRoom
+            ? targetRoom.split(' ').slice(1).join(' ')
+            : (originalMeet?.room ?? null),
       }
 
       // Record the course change using the changes context
+      // If dropped on student schedule, preserve original professor
+      const professorToUse = isStudentSchedule
+        ? dragState.originalProfessor || ''
+        : targetProfessor || ''
+
       addOrUpdateCourseChange({
         crn: dragState.crn,
         term: dragState.term,
-        targetProfessor: targetProfessor || '',
+        targetProfessor: professorToUse,
         meet_info: [newMeetInfo],
         timestamp: Date.now(),
       })

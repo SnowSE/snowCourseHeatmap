@@ -2,7 +2,7 @@ import { FC, useMemo } from 'react'
 import { ScheduleDayComponent } from './ScheduleDayComponent'
 import { ClassesWeekTimeLabels } from './ClassesWeekTimeLabels'
 import type { Course } from '@/schemas/courses'
-import { CourseOwner } from '@/contexts/CourseOwnerContext'
+import { CourseOwner } from '@/components/scheduler/contexts/CourseOwnerContext'
 
 export const ScheduleWeekDisplay: FC<{
   courses: Course[]

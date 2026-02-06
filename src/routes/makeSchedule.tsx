@@ -1,7 +1,7 @@
 import { ScheduleViewer } from '@/components/scheduler/ScheduleViewer'
-import { CourseDragProvider } from '@/contexts/CourseDragContext'
-import { CourseOwnerProvider } from '@/contexts/CourseOwnerContext'
-import { CourseChangesProvider } from '@/contexts/CourseChangesContext'
+import { CourseDragProvider } from '@/components/scheduler/contexts/CourseDragContext'
+import { CourseOwnerProvider } from '@/components/scheduler/contexts/CourseOwnerContext'
+import { CourseChangesProvider } from '@/components/scheduler/contexts/CourseChangesContext'
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/makeSchedule')({

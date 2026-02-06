@@ -1,5 +1,5 @@
 import { FC, useState } from 'react'
-import { useCourseDrag } from '@/contexts/CourseDragContext'
+import { useCourseDrag } from '@/components/scheduler/contexts/CourseDragContext'
 import type { z } from 'zod'
 import { MeetInfoSchema } from '@/schemas/courses'
 import { CourseContextMenu } from './CourseContextMenu'
@@ -76,7 +76,7 @@ export const DraggableCourse: FC<{
         draggable
         onDragStart={(e) => {
           e.dataTransfer.effectAllowed = 'move'
-          handleDragStart(crn, term, meetInfo)
+          handleDragStart(crn, term, meetInfo, instructors[0])
         }}
         onContextMenu={handleContextMenu}
         onDoubleClick={handleDoubleClick}
