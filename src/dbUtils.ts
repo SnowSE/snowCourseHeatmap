@@ -4,7 +4,8 @@ let dbInstance: Database.Database | null = null
 
 export const getDatabase = () => {
   if (!dbInstance) {
-    dbInstance = new Database('storage/app.db')
+    const dbPath = process.env.DATABASE_PATH || 'storage/app.db'
+    dbInstance = new Database(dbPath)
     initializeSchema(dbInstance)
   }
   return dbInstance

@@ -7,6 +7,7 @@ services:
     #   - '3000:3000'
     environment:
       - NODE_ENV=production
+      - DATABASE_PATH=/app/storage/app.db
     volumes:
       - ./storage:/app/storage
     restart: unless-stopped
