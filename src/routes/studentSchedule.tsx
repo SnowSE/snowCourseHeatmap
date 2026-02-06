@@ -1,14 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
-import { StudentSchedulesList } from '@/components/studentSchedules/StudentSchedulesList'
+import { Plus } from 'lucide-react'
+import { StudentScheduleCard } from '@/components/studentSchedules/StudentScheduleCard'
 import { StudentScheduleCreateForm } from '@/components/studentSchedules/StudentScheduleCreateForm'
-import { StudentScheduleForm } from '@/components/studentSchedules/StudentScheduleForm'
-import { StudentScheduleDetails } from '@/components/studentSchedules/StudentScheduleDetails'
-import { Modal } from '@/components/Modal'
 import {
   useCreateStudentSchedule,
-  useUpdateStudentSchedule,
-  useStudentSchedule,
+  useStudentSchedules,
 } from '@/hooks/useStudentSchedules'
 
 export const Route = createFileRoute('/studentSchedule')({
@@ -17,113 +14,76 @@ export const Route = createFileRoute('/studentSchedule')({
 
 function StudentSchedulePage() {
   const [isCreating, setIsCreating] = useState(false)
-  const [editingId, setEditingId] = useState<number | null>(null)
-  const [viewingId, setViewingId] = useState<number | null>(null)
 
+  const { data: schedules = [], isLoading } = useStudentSchedules()
   const createSchedule = useCreateStudentSchedule()
-  const updateSchedule = useUpdateStudentSchedule()
-  const { data: editingSchedule } = useStudentSchedule(editingId || 0)
 
   const handleCreate = (name: string) => {
     createSchedule.mutate(
       { name, classes: [] },
       {
-        onSuccess: (newSchedule) => {
+        onSuccess: () => {
           setIsCreating(false)
-          setEditingId(newSchedule.id!)
         },
       },
     )
   }
 
-  const handleUpdateName = (name: string) => {
-    if (editingId && editingSchedule) {
-      updateSchedule.mutate({
-        id: editingId,
-        name,
-        classes: editingSchedule.classes,
-      })
-    }
-  }
-
-  const handleAddClass = (department: string, courseName: string) => {
-    if (editingId && editingSchedule) {
-      const updatedClasses = [
-        ...editingSchedule.classes,
-        { department, course_name: courseName },
-      ]
-      updateSchedule.mutate({
-        id: editingId,
-        name: editingSchedule.name,
-        classes: updatedClasses,
-      })
-    }
-  }
-
-  const handleRemoveClass = (index: number) => {
-    if (editingId && editingSchedule) {
-      const updatedClasses = editingSchedule.classes.filter(
-        (_, i) => i !== index,
-      )
-      updateSchedule.mutate({
-        id: editingId,
-        name: editingSchedule.name,
-        classes: updatedClasses,
-      })
-    }
-  }
-
-  const handleEdit = (id: number) => {
-    setEditingId(id)
-    setViewingId(null)
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full text-slate-200/70">
+        Loading schedules...
+      </div>
+    )
   }
 
   return (
-    <div className="h-full flex">
-      <div className="w-80 border-r border-white/10 p-4">
-        <StudentSchedulesList
-          onCreateNew={() => setIsCreating(true)}
-          onEdit={handleEdit}
-        />
-      </div>
+    <div className="h-full overflow-y-auto p-6">
+      <div className=" mx-auto space-y-6">
+        <div className="flex items-center justify-between gap-4">
+          <h1 className="text-3xl font-bold text-slate-50">
+            Student Schedules
+          </h1>
+          <button
+            onClick={() => setIsCreating(!isCreating)}
+            className="px-4 py-2 rounded-lg border border-slate-200/20 bg-blue-500/20 
+                      hover:bg-blue-500/30 text-slate-50 transition-colors flex items-center gap-2"
+          >
+            <Plus size={18} />
+            New Schedule
+          </button>
+        </div>
 
-      <div className="flex-1">
-        {viewingId ? (
-          <StudentScheduleDetails scheduleId={viewingId} />
+        {isCreating && (
+          <div className="rounded-lg border border-slate-200/20 bg-slate-200/5 p-6">
+            <h3 className="text-lg font-semibold text-slate-50 mb-4">
+              Create New Schedule
+            </h3>
+            <StudentScheduleCreateForm
+              onSubmit={handleCreate}
+              onCancel={() => setIsCreating(false)}
+              isSubmitting={createSchedule.isPending}
+            />
+          </div>
+        )}
+
+        {schedules.length === 0 ? (
+          <div className="text-slate-200/50 text-center py-12 border border-slate-200/10 rounded-lg">
+            No schedules yet. Create one to get started!
+          </div>
         ) : (
-          <div className="flex items-center justify-center h-full text-white/50">
-            Select a schedule or create a new one
+          <div className="flex flex-wrap gap-6">
+            {schedules.map((schedule) => (
+              <div
+                key={schedule.id}
+                className="rounded-lg bg-slate-950/50 p-6 space-y-4"
+              >
+                <StudentScheduleCard schedule={schedule} />
+              </div>
+            ))}
           </div>
         )}
       </div>
-
-      <Modal
-        isOpen={isCreating}
-        onClose={() => setIsCreating(false)}
-        title="Create New Schedule"
-      >
-        <StudentScheduleCreateForm
-          onSubmit={handleCreate}
-          onCancel={() => setIsCreating(false)}
-          isSubmitting={createSchedule.isPending}
-        />
-      </Modal>
-
-      <Modal
-        isOpen={editingId !== null}
-        onClose={() => setEditingId(null)}
-        title="Edit Schedule"
-      >
-        {editingSchedule && (
-          <StudentScheduleForm
-            schedule={editingSchedule}
-            onCancel={() => setEditingId(null)}
-            onAddClass={handleAddClass}
-            onRemoveClass={handleRemoveClass}
-            onUpdateName={handleUpdateName}
-          />
-        )}
-      </Modal>
     </div>
   )
 }

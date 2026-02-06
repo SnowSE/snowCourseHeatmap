@@ -17,7 +17,10 @@ export function useDepartments() {
     })
 
     // Return sorted array of unique departments
-    return Array.from(deptSet).sort()
+    // subject_code serves as both value (ID) and label (title)
+    return Array.from(deptSet)
+      .sort()
+      .map((dept) => ({ value: dept, label: dept }))
   }, [coursesData])
 
   return departments

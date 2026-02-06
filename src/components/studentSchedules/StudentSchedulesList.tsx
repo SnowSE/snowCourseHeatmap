@@ -4,6 +4,7 @@ import {
   useDeleteStudentSchedule,
 } from '@/hooks/useStudentSchedules'
 import { Plus, Trash2, Edit, Calendar } from 'lucide-react'
+import { TextInput } from '@/components/form/TextInput'
 
 export const StudentSchedulesList = ({
   onCreateNew,
@@ -37,14 +38,13 @@ export const StudentSchedulesList = ({
   return (
     <div className="h-full flex flex-col">
       <div className="space-y-3 pb-4">
-        <input
-          type="text"
+        <TextInput
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          placeholder="Search schedules"
+          label="Search schedules"
           className="w-full rounded-lg 
-                     border border-white/20 bg-white/10 
-                     px-4 py-2 text-white placeholder-white/50 
+                     border border-slate-200/20 bg-slate-200/10 
+                     px-4 pt-5 pb-2 text-slate-50 
                      backdrop-blur-sm 
                      focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
         />

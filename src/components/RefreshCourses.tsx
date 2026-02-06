@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useRefreshCourses } from '../hooks/useCourses'
-import { FormSelect } from './FormSelect'
+import { FormSelect } from './form/FormSelect'
 import type { Course } from '../schemas/courses'
 
 function generateTermOptions() {

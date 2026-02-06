@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { useTerm } from '../contexts/TermContext'
-import { FormSelect } from './FormSelect'
+import { FormSelect } from './form/FormSelect'
 import { Modal } from './Modal'
 import { RefreshCourses } from './RefreshCourses'
 import { useQueryClient } from '@tanstack/react-query'

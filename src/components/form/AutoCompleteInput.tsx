@@ -1,10 +1,10 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { TextInput } from './TextInput'
 
 export const AutoCompleteInput: React.FC<{
   value: string
   onChange: (value: string) => void
-  options: string[]
+  options: Array<{ value: string; label: string }>
   label?: string
   onKeyDown?: (e: React.KeyboardEvent) => void
   className?: string
@@ -24,17 +24,23 @@ export const AutoCompleteInput: React.FC<{
 
   const filteredOptions = value
     ? options.filter((option) =>
-        option.toLowerCase().startsWith(value.toLowerCase()),
+        option.value.toLowerCase().startsWith(value.toLowerCase()),
       )
     : []
 
-  const selectOption = (option: string) => {
-    onChange(option)
+  const selectOption = (option: { value: string; label: string }) => {
+    onChange(option.value)
     setShowSuggestions(false)
     setSelectedIndex(-1)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Tab') {
+      setShowSuggestions(false)
+      setSelectedIndex(-1)
+      return
+    }
+
     if (e.key === 'ArrowDown') {
       e.preventDefault()
       setSelectedIndex((prev) =>
@@ -58,12 +64,6 @@ export const AutoCompleteInput: React.FC<{
     }
   }
 
-  useEffect(() => {
-    if (selectedIndex >= 0 && selectedIndex < filteredOptions.length) {
-      onChange(filteredOptions[selectedIndex])
-    }
-  }, [selectedIndex, filteredOptions, onChange])
-
   return (
     <div className="relative w-full">
       <TextInput
@@ -85,14 +85,19 @@ export const AutoCompleteInput: React.FC<{
         <div className="absolute z-10 w-full mt-1 bg-gray-800 border border-white/20 rounded-lg shadow-lg max-h-48 overflow-y-auto">
           {filteredOptions.map((option, index) => (
             <button
-              key={option}
+              key={option.value}
               type="button"
               onClick={() => selectOption(option)}
               className={`w-full text-left px-3 py-2 text-sm text-white hover:bg-blue-500/30 transition-colors ${
                 index === selectedIndex ? 'bg-blue-500/20' : ''
               }`}
             >
-              {option}
+              <div className="flex items-baseline gap-2">
+                <span className="font-semibold">{option.value}</span>
+                <span className="text-slate-300/70 text-xs">
+                  {option.label}
+                </span>
+              </div>
             </button>
           ))}
         </div>

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { TextInput } from '@/components/form/TextInput'
 
 export const StudentScheduleCreateForm = ({
   onSubmit,
@@ -21,40 +22,33 @@ export const StudentScheduleCreateForm = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
-        <label
-          htmlFor="schedule-name"
-          className="block text-sm font-medium text-white/80 mb-2"
-        >
-          Schedule Name
-        </label>
-        <input
+        <TextInput
           id="schedule-name"
-          type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="e.g., Fall 2024 Schedule"
+          label="Schedule Name"
           required
           autoFocus
           className="w-full rounded-lg 
-                     border border-white/20 bg-white/10 
-                     px-4 py-2.5 text-white placeholder-white/50 
+                     border border-slate-200/20 bg-slate-200/10 
+                     px-4 pt-5 pb-2 text-slate-50 
                      focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
         />
-        <p className="text-xs text-white/50 mt-2">
+        <p className="text-xs text-slate-200/50 mt-2">
           You'll be able to add classes after creating the schedule
         </p>
       </div>
 
-      <div className="flex gap-3 pt-4 border-t border-white/10">
+      <div className="flex gap-3 pt-4 border-t border-slate-200/10">
         <button
           type="button"
           onClick={onCancel}
           disabled={isSubmitting}
           className="flex-1 rounded-lg 
-                     border border-white/20 bg-white/5 
-                     hover:bg-white/10 
+                     border border-slate-200/20 bg-slate-200/5 
+                     hover:bg-slate-200/10 
                      disabled:opacity-50 disabled:cursor-not-allowed 
-                     px-4 py-2.5 text-white transition-colors"
+                     px-4 py-2.5 text-slate-50 transition-colors"
         >
           Cancel
         </button>
@@ -62,10 +56,10 @@ export const StudentScheduleCreateForm = ({
           type="submit"
           disabled={isSubmitting || !name.trim()}
           className="flex-1 rounded-lg 
-                     border border-white/20 bg-blue-500/30 
+                     border border-slate-200/20 bg-blue-500/30 
                      hover:bg-blue-500/40 
                      disabled:opacity-50 disabled:cursor-not-allowed 
-                     px-4 py-2.5 text-white font-medium transition-colors"
+                     px-4 py-2.5 text-slate-50 font-medium transition-colors"
         >
           {isSubmitting ? 'Creating...' : 'Create'}
         </button>

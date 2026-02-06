@@ -12,16 +12,13 @@ export function FormSelect({
   options: Array<{ value: string; label: string }>
 }) {
   return (
-    <div className={`flex min-w-0 flex-1 flex-col gap-1`}>
-      <label htmlFor={id} className="text-sm font-medium ">
-        {label}
-      </label>
+    <div className="relative w-full">
       <select
         id={id}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className={`
-          w-full
+          w-full peer
           rounded-lg
           border border-white/20
           bg-white/10 backdrop-blur-sm
@@ -36,6 +33,12 @@ export function FormSelect({
           </option>
         ))}
       </select>
+      <label
+        htmlFor={id}
+        className="absolute left-3 top-0 text-slate-400 text-xs transition-all duration-200 pointer-events-none"
+      >
+        {label}
+      </label>
     </div>
   )
 }

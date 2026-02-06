@@ -69,7 +69,6 @@ export const AddClassForm = ({
           Add
         </button>
       </div>
-      <p className="text-xs text-white/50 mt-2">Press Enter to add a class</p>
     </>
   )
 }

@@ -18,27 +18,27 @@ export const getAllStudentSchedules = createServerFn().handler(async () => {
     const schedules = db
       .prepare(
         `
-SELECT 
-  s.id,
-  s.name,
-  s.created_at,
-  s.updated_at,
-  COALESCE(
-    json_group_array(
-      json_object(
-        'id', c.id,
-        'schedule_id', c.schedule_id,
-        'department', c.department,
-        'course_name', c.course_name
-      )
-    ) FILTER (WHERE c.id IS NOT NULL),
-    '[]'
-  ) as classes
-FROM student_schedules s
-LEFT JOIN student_classes c ON s.id = c.schedule_id
-GROUP BY s.id, s.name, s.created_at, s.updated_at
-ORDER BY s.updated_at DESC
-`,
+          SELECT 
+            s.id,
+            s.name,
+            s.created_at,
+            s.updated_at,
+            COALESCE(
+              json_group_array(
+                json_object(
+                  'id', c.id,
+                  'schedule_id', c.schedule_id,
+                  'department', c.department,
+                  'course_name', c.course_name
+                )
+              ) FILTER (WHERE c.id IS NOT NULL),
+              '[]'
+            ) as classes
+          FROM student_schedules s
+          LEFT JOIN student_classes c ON s.id = c.schedule_id
+          GROUP BY s.id, s.name, s.created_at, s.updated_at
+          ORDER BY s.name ASC
+        `,
       )
       .all() as Array<{
       id: number
@@ -64,27 +64,27 @@ export const getStudentSchedule = createServerFn()
       const schedule = db
         .prepare(
           `
-SELECT 
-  s.id,
-  s.name,
-  s.created_at,
-  s.updated_at,
-  COALESCE(
-    json_group_array(
-      json_object(
-        'id', c.id,
-        'schedule_id', c.schedule_id,
-        'department', c.department,
-        'course_name', c.course_name
-      )
-    ) FILTER (WHERE c.id IS NOT NULL),
-    '[]'
-  ) as classes
-FROM student_schedules s
-LEFT JOIN student_classes c ON s.id = c.schedule_id
-WHERE s.id = @id
-GROUP BY s.id, s.name, s.created_at, s.updated_at
-`,
+            SELECT 
+              s.id,
+              s.name,
+              s.created_at,
+              s.updated_at,
+              COALESCE(
+                json_group_array(
+                  json_object(
+                    'id', c.id,
+                    'schedule_id', c.schedule_id,
+                    'department', c.department,
+                    'course_name', c.course_name
+                  )
+                ) FILTER (WHERE c.id IS NOT NULL),
+                '[]'
+              ) as classes
+            FROM student_schedules s
+            LEFT JOIN student_classes c ON s.id = c.schedule_id
+            WHERE s.id = @id
+            GROUP BY s.id, s.name, s.created_at, s.updated_at
+          `,
         )
         .get({ id }) as
         | {
@@ -125,9 +125,9 @@ export const createStudentSchedule = createServerFn()
 
         if (classes.length > 0) {
           const insertClass = db.prepare(`
-INSERT INTO student_classes (schedule_id, department, course_name)
-VALUES (@scheduleId, @department, @courseName)
-`)
+            INSERT INTO student_classes (schedule_id, department, course_name)
+            VALUES (@scheduleId, @department, @courseName)
+          `)
 
           for (const cls of classes) {
             insertClass.run({
@@ -141,27 +141,27 @@ VALUES (@scheduleId, @department, @courseName)
         const schedule = db
           .prepare(
             `
-SELECT 
-  s.id,
-  s.name,
-  s.created_at,
-  s.updated_at,
-  COALESCE(
-    json_group_array(
-      json_object(
-        'id', c.id,
-        'schedule_id', c.schedule_id,
-        'department', c.department,
-        'course_name', c.course_name
-      )
-    ) FILTER (WHERE c.id IS NOT NULL),
-    '[]'
-  ) as classes
-FROM student_schedules s
-LEFT JOIN student_classes c ON s.id = c.schedule_id
-WHERE s.id = @scheduleId
-GROUP BY s.id, s.name, s.created_at, s.updated_at
-`,
+              SELECT 
+                s.id,
+                s.name,
+                s.created_at,
+                s.updated_at,
+                COALESCE(
+                  json_group_array(
+                    json_object(
+                      'id', c.id,
+                      'schedule_id', c.schedule_id,
+                      'department', c.department,
+                      'course_name', c.course_name
+                    )
+                  ) FILTER (WHERE c.id IS NOT NULL),
+                  '[]'
+                ) as classes
+              FROM student_schedules s
+              LEFT JOIN student_classes c ON s.id = c.schedule_id
+              WHERE s.id = @scheduleId
+              GROUP BY s.id, s.name, s.created_at, s.updated_at
+            `,
           )
           .get({ scheduleId }) as {
           id: number
@@ -191,7 +191,11 @@ export const updateStudentSchedule = createServerFn()
     return withDatabase((db) => {
       return db.transaction(() => {
         db.prepare(
-          `UPDATE student_schedules SET name = @name, updated_at = strftime('%s', 'now') WHERE id = @id`,
+          `
+            UPDATE student_schedules 
+            SET name = @name, updated_at = strftime('%s', 'now') 
+            WHERE id = @id
+          `,
         ).run({ name, id })
 
         db.prepare('DELETE FROM student_classes WHERE schedule_id = @id').run({
@@ -200,9 +204,9 @@ export const updateStudentSchedule = createServerFn()
 
         if (classes.length > 0) {
           const insertClass = db.prepare(`
-INSERT INTO student_classes (schedule_id, department, course_name)
-VALUES (@id, @department, @courseName)
-`)
+            INSERT INTO student_classes (schedule_id, department, course_name)
+            VALUES (@id, @department, @courseName)
+          `)
 
           for (const cls of classes) {
             insertClass.run({
@@ -216,27 +220,27 @@ VALUES (@id, @department, @courseName)
         const schedule = db
           .prepare(
             `
-SELECT 
-  s.id,
-  s.name,
-  s.created_at,
-  s.updated_at,
-  COALESCE(
-    json_group_array(
-      json_object(
-        'id', c.id,
-        'schedule_id', c.schedule_id,
-        'department', c.department,
-        'course_name', c.course_name
-      )
-    ) FILTER (WHERE c.id IS NOT NULL),
-    '[]'
-  ) as classes
-FROM student_schedules s
-LEFT JOIN student_classes c ON s.id = c.schedule_id
-WHERE s.id = @id
-GROUP BY s.id, s.name, s.created_at, s.updated_at
-`,
+              SELECT 
+                s.id,
+                s.name,
+                s.created_at,
+                s.updated_at,
+                COALESCE(
+                  json_group_array(
+                    json_object(
+                      'id', c.id,
+                      'schedule_id', c.schedule_id,
+                      'department', c.department,
+                      'course_name', c.course_name
+                    )
+                  ) FILTER (WHERE c.id IS NOT NULL),
+                  '[]'
+                ) as classes
+              FROM student_schedules s
+              LEFT JOIN student_classes c ON s.id = c.schedule_id
+              WHERE s.id = @id
+              GROUP BY s.id, s.name, s.created_at, s.updated_at
+            `,
           )
           .get({ id }) as {
           id: number
@@ -259,6 +263,38 @@ export const deleteStudentSchedule = createServerFn()
   .handler(async ({ data: { id } }) => {
     return withDatabase((db) => {
       db.prepare('DELETE FROM student_schedules WHERE id = @id').run({ id })
+      return { success: true }
+    })
+  })
+
+export const removeClassFromSchedule = createServerFn()
+  .inputValidator(
+    z.object({
+      scheduleId: z.number(),
+      department: z.string(),
+      courseName: z.string(),
+    }),
+  )
+  .handler(async ({ data: { scheduleId, department, courseName } }) => {
+    return withDatabase((db) => {
+      db.prepare(
+        `
+          DELETE FROM student_classes 
+          WHERE schedule_id = @scheduleId 
+            AND department = @department 
+            AND course_name = @courseName
+            AND schedule_id IN (SELECT id FROM student_schedules WHERE id = @scheduleId)
+        `,
+      ).run({ scheduleId, department, courseName })
+
+      db.prepare(
+        `
+          UPDATE student_schedules 
+          SET updated_at = strftime('%s', 'now') 
+          WHERE id = @scheduleId
+        `,
+      ).run({ scheduleId })
+
       return { success: true }
     })
   })
@@ -318,6 +354,24 @@ export function useDeleteStudentSchedule() {
     mutationFn: (id: number) => deleteStudentSchedule({ data: { id } }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['studentSchedules'] })
+    },
+  })
+}
+
+export function useRemoveClassFromSchedule() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: {
+      scheduleId: number
+      department: string
+      courseName: string
+    }) => removeClassFromSchedule({ data }),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['studentSchedules'] })
+      queryClient.invalidateQueries({
+        queryKey: ['studentSchedules', variables.scheduleId],
+      })
     },
   })
 }
