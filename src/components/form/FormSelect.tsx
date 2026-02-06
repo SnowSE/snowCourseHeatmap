@@ -19,7 +19,7 @@ export function FormSelect({
         onChange={(e) => onChange(e.target.value)}
         className="w-full rounded-lg pt-4 px-4 pb-1
                    border border-slate-700 bg-slate-900 
-                   text-white 
+                   text-slate-200
                    backdrop-blur-sm 
                    focus:outline-none focus:ring-2 focus:ring-slate-700 focus:border-transparent"
       >
