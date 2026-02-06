@@ -1,8 +1,6 @@
 import { FC, useMemo } from 'react'
-import {
-  useCourseChanges,
-  useConflictDetection,
-} from '@/components/scheduler/contexts/CourseChangesContext'
+import { useCourseChanges } from '@/components/scheduler/contexts/CourseChangesContext'
+import { useConflictDetection } from '../contexts/useConflictDetection'
 import { useCoursesInCurrentTerm } from '@/hooks/useCourses'
 import { useStudentSchedules } from '@/hooks/useStudentSchedules'
 import { DisplayConflicts } from '@/components/scheduler/changes/DisplayConflicts'
