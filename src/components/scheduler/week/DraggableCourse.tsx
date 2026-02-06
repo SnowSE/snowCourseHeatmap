@@ -40,14 +40,7 @@ export const DraggableCourse: FC<{
       draggable
       onDragStart={(e) => {
         e.dataTransfer.effectAllowed = 'move'
-        handleDragStart(crn, term, meetInfo, (targetProfessor, targetMeetInfo) => {
-          console.log('Dropped course:', {
-            crn,
-            term,
-            targetProfessor,
-            targetMeetInfo,
-          })
-        })
+        handleDragStart(crn, term, meetInfo)
       }}
       title={`${subjectCode} ${courseNumber} - ${courseName}\n${formatTime12Hour(startTime)} - ${formatTime12Hour(endTime)}`}
       className="

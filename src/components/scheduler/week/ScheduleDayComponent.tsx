@@ -78,12 +78,14 @@ export const ScheduleDayComponent: FC<{
           e.dataTransfer.dropEffect = 'move'
         }}
         onDrop={(e) => {
+          e.preventDefault()
           if (!owner) return
 
           const rect = e.currentTarget.getBoundingClientRect()
           const y = e.clientY - rect.top
           const percentY = (y / rect.height) * 100
-          const droppedMinutes = dayStartMinutes + (percentY / 100) * totalDayMinutes
+          const droppedMinutes =
+            dayStartMinutes + (percentY / 100) * totalDayMinutes
 
           // Round to nearest 30-minute interval
           const roundedMinutes = Math.round(droppedMinutes / 30) * 30
@@ -91,20 +93,7 @@ export const ScheduleDayComponent: FC<{
           const minutes = roundedMinutes % 60
           const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
 
-          // Create new meet_info with the dropped time on this day
-          const newMeetInfo: z.infer<typeof MeetInfoSchema>[] = [
-            {
-              days: [day],
-              start_time: timeString,
-              end_time: null, // Will need to be set based on original duration or default
-              // When dropping on a room, set building/room. Otherwise leave as null to be filled from original
-              building: owner.roomName ? owner.roomName.split(' ')[0] : null,
-              building_code: null,
-              room: owner.roomName ? owner.roomName.split(' ').slice(1).join(' ') : null,
-            },
-          ]
-
-          handleDrop(e, owner.professorName || '', newMeetInfo)
+          handleDrop(day, timeString, owner.professorName, owner.roomName)
         }}
       >
         {/* Time grid lines */}

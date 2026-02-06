@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { Course } from '@/schemas/courses'
-import { CourseOwner } from '@/components/scheduler/ProfessorList'
+import { CourseOwner } from '@/components/scheduler/ScheduleOwnerList'
 
 export const useCourseOwners = (courses: Course[], filter: string) => {
   return useMemo(() => {

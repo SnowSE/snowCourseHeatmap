@@ -47,6 +47,13 @@ const updateCoursesInDatabase = async (term: string, courses: any[]) => {
           courseData: JSON.stringify(course),
         })
       }
+
+      // Update the term's updated_at timestamp
+      db.prepare(
+        "UPDATE terms SET updated_at = strftime('%s', 'now') WHERE term_code = @termCode",
+      ).run({
+        termCode: term,
+      })
     })()
   })
 }

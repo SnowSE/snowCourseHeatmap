@@ -14,7 +14,8 @@ const initializeSchema = (db: Database.Database) => {
   db.exec(`
     CREATE TABLE IF NOT EXISTS terms (
       term_code TEXT PRIMARY KEY,
-      name TEXT NOT NULL
+      name TEXT NOT NULL,
+      updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
     );
 
     CREATE TABLE IF NOT EXISTS courses (
@@ -32,9 +33,7 @@ export const closeDatabase = () => {
   }
 }
 
-export const withDatabase = <T>(
-  operation: (db: Database.Database) => T,
-): T => {
+export const withDatabase = <T>(operation: (db: Database.Database) => T): T => {
   const db = getDatabase()
   try {
     return operation(db)
