@@ -13,7 +13,7 @@ export const VisualizeChanges: FC<{
         {/* Professor - only if changed */}
         {original.instructors.map((i) => i.name).join(', ') !==
           change.targetProfessor && (
-          <div className="text-rose-200/80 truncate">
+          <div className="text-slate-200/80 truncate">
             {original.instructors.map((i) => i.name).join(', ')}
           </div>
         )}
@@ -34,7 +34,7 @@ export const VisualizeChanges: FC<{
           if (!timesChanged && !roomChanged) return null
 
           return (
-            <div key={meetIdx} className="text-rose-200/80">
+            <div key={meetIdx} className="text-slate-200/80">
               {timesChanged && (
                 <div className="font-mono text-xs">
                   {formatDays(originalMeet.days)}{' '}
