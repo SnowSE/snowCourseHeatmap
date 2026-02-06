@@ -5,7 +5,7 @@ import {
   useUpdateStudentSchedule,
   useRemoveClassFromSchedule,
 } from '@/hooks/useStudentSchedules'
-import { useCourses } from '@/hooks/useCourses'
+import { useCourses } from '@/components/studentSchedules/useCourses'
 import type { StudentSchedule } from '@/schemas/studentSchedule'
 import { AddClassForm } from './AddClassForm'
 import { EditStudentScheduleName } from './EditStudentScheduleName'

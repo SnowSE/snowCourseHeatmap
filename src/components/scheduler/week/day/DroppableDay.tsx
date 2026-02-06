@@ -20,7 +20,7 @@ export const DroppableDay: FC<DroppableDayProps> = ({
   timeGridLines,
   children,
 }) => {
-  const { handleDrop } = useCourseDrag()
+  const { handleDrop, isDragging } = useCourseDrag()
   const [hoverPosition, setHoverPosition] = useState<{
     percentY: number
     timeString: string
@@ -91,7 +91,7 @@ export const DroppableDay: FC<DroppableDayProps> = ({
       ))}
 
       {/* Hover indicator */}
-      {hoverPosition && (
+      {hoverPosition && isDragging && (
         <div
           className="absolute left-0 right-0 pointer-events-none z-50"
           style={{ top: `${hoverPosition.percentY}%` }}

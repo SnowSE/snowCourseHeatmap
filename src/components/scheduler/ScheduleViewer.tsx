@@ -26,14 +26,14 @@ export const ScheduleViewer = () => {
           />
           <button
             onClick={clearAllCourseOwners}
-            disabled={selectedCourseOwners.size === 0}
+            disabled={selectedCourseOwners.length === 0}
             className="w-full rounded-lg 
                        border border-white/20 bg-red-500/20 
                        hover:bg-red-500/30 
                        disabled:opacity-50 disabled:cursor-not-allowed 
                        transition-colors"
           >
-            Clear Selection ({selectedCourseOwners.size})
+            Clear Selection ({selectedCourseOwners.length})
           </button>
         </div>
         <ScheduleOwnerList filter={filter} />

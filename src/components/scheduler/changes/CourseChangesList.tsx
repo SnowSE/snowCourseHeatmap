@@ -1,7 +1,7 @@
 import { FC, useMemo } from 'react'
 import { useCourseChanges } from '@/components/scheduler/contexts/CourseChangesContext'
 import { useConflictDetection } from '../contexts/useConflictDetection'
-import { useCoursesInCurrentTerm } from '@/hooks/useCourses'
+import { useCoursesInCurrentTerm } from '@/components/studentSchedules/useCourses'
 import { useStudentSchedules } from '@/hooks/useStudentSchedules'
 import { DisplayConflicts } from '@/components/scheduler/changes/DisplayConflicts'
 import { VisualizeChanges } from './VisualizeChanges'
@@ -12,7 +12,6 @@ export const CourseChangesList: FC = () => {
   const { data: courses = [] } = useCoursesInCurrentTerm()
   const { data: studentSchedules = [] } = useStudentSchedules()
   const { getConflictsForChange } = useConflictDetection()
-
 
   // console.log("courses without professor:", courses.filter(c => c.instructors.length === 0));
 

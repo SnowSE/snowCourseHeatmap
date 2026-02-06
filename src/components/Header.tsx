@@ -11,35 +11,39 @@ export const Header = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const { selectedTerm, setSelectedTerm, termOptions } = useTerm()
 
+  const activeClassName =
+    'bg-slate-800 text-blue-100 rounded border-b-2 border-blue-400'
+  const linkClass =
+    'px-4 py-2  text-blue-200 hover:text-blue-100 hover:bg-slate-800/50 font-medium transition-all'
   return (
     <>
-      <header className=" bg-slate-900/50 backdrop-blur-sm">
+      <header className=" ">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between gap-8">
             <nav className="flex gap-1">
               <Link
                 to="/"
-                className="px-4 py-2 rounded-lg text-blue-300 hover:text-blue-100 hover:bg-slate-800/50 font-medium transition-all"
+                className={linkClass}
                 activeProps={{
-                  className: 'bg-slate-800 text-blue-100',
+                  className: activeClassName,
                 }}
               >
                 Course Heatmap
               </Link>
               <Link
                 to="/makeSchedule"
-                className="px-4 py-2 rounded-lg text-blue-300 hover:text-blue-100 hover:bg-slate-800/50 font-medium transition-all"
+                className={linkClass}
                 activeProps={{
-                  className: 'bg-slate-800 text-blue-100',
+                  className: activeClassName,
                 }}
               >
                 Make Schedule
               </Link>
               <Link
                 to="/studentSchedule"
-                className="px-4 py-2 rounded-lg text-blue-300 hover:text-blue-100 hover:bg-slate-800/50 font-medium transition-all"
+                className={linkClass}
                 activeProps={{
-                  className: 'bg-slate-800 text-blue-100',
+                  className: activeClassName,
                 }}
               >
                 Student Schedule
@@ -57,7 +61,7 @@ export const Header = () => {
               )}
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="inline-flex items-center justify-center rounded-lg bg-blue-700 px-5 py-2.5 font-semibold text-white shadow-md transition-all hover:bg-blue-600 hover:shadow-lg active:scale-95"
+                className="rounded-lg bg-blue-900 px-5 py-2.5 font-semibold text-slate-100 shadow-md transition-all hover:bg-blue-800 hover:shadow-lg text-nowrap"
               >
                 Refresh Courses
               </button>

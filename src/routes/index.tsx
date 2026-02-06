@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useState, useMemo, useDeferredValue } from 'react'
 import { CoursesList } from '../components/heatmap/CoursesList'
 import { CourseWeekHeatmap } from '@/components/heatmap/CourseWeekHeatmap'
-import { useCourses } from '../hooks/useCourses'
+import { useCourses } from '../components/studentSchedules/useCourses'
 import { useTerm } from '../contexts/TermContext'
 
 export const Route = createFileRoute('/')({ component: App })

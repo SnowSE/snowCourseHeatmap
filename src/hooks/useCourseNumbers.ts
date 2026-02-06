@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { useCourses } from './useCourses'
+import { useCourses } from '../components/studentSchedules/useCourses'
 
 export function useCourseNumbers(department: string) {
   const { data: coursesData = {} } = useCourses()

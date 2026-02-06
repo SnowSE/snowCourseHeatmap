@@ -31,12 +31,11 @@ const deserializeCourseOwner = (key: string): CourseOwner | null => {
   return null
 }
 
-const loadFromLocalStorage = (): Set<string> => {
+const loadFromLocalStorage = (): string[] => {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (stored) {
-      const parsed = JSON.parse(stored) as string[]
-      return new Set(parsed)
+      return JSON.parse(stored) as string[]
     }
   } catch (error) {
     console.error(
@@ -44,15 +43,12 @@ const loadFromLocalStorage = (): Set<string> => {
       error,
     )
   }
-  return new Set()
+  return []
 }
 
-const saveToLocalStorage = (selectedOwners: Set<string>) => {
+const saveToLocalStorage = (selectedOwners: string[]) => {
   try {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(Array.from(selectedOwners)),
-    )
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(selectedOwners))
   } catch (error) {
     console.error(
       'Failed to save selected course owners to localStorage:',
@@ -63,20 +59,26 @@ const saveToLocalStorage = (selectedOwners: Set<string>) => {
 
 const CourseOwnerContext = createContext<
   | {
-      selectedCourseOwners: Set<string>
+      selectedCourseOwners: string[]
+      ownerNameBeingDragged: string | null
       addCourseOwner: (owner: CourseOwner) => void
       removeCourseOwner: (owner: CourseOwner) => void
       toggleCourseOwner: (owner: CourseOwner) => void
       clearAllCourseOwners: () => void
       deserializeCourseOwner: (key: string) => CourseOwner | null
+      handleDragStart: (ownerKey: string) => void
+      handleDrop: (targetOwnerKey: string) => void
     }
   | undefined
 >(undefined)
 
 export function CourseOwnerProvider({ children }: { children: ReactNode }) {
-  const [selectedCourseOwners, setSelectedCourseOwners] = useState<Set<string>>(
+  const [selectedCourseOwners, setSelectedCourseOwners] = useState<string[]>(
     () => loadFromLocalStorage(),
   )
+  const [ownerNameBeingDragged, setOwnerNameBeingDragged] = useState<
+    string | null
+  >(null)
 
   useEffect(() => {
     saveToLocalStorage(selectedCourseOwners)
@@ -85,47 +87,76 @@ export function CourseOwnerProvider({ children }: { children: ReactNode }) {
   const addCourseOwner = (owner: CourseOwner) => {
     const key = serializeCourseOwner(owner)
     setSelectedCourseOwners((prev) => {
-      const next = new Set(prev)
-      next.add(key)
-      return next
+      // Check for duplicates
+      if (prev.includes(key)) {
+        return prev
+      }
+      return [...prev, key]
     })
   }
 
   const removeCourseOwner = (owner: CourseOwner) => {
     const key = serializeCourseOwner(owner)
-    setSelectedCourseOwners((prev) => {
-      const next = new Set(prev)
-      next.delete(key)
-      return next
-    })
+    setSelectedCourseOwners((prev) => prev.filter((k) => k !== key))
   }
 
   const toggleCourseOwner = (owner: CourseOwner) => {
     const key = serializeCourseOwner(owner)
     setSelectedCourseOwners((prev) => {
-      const next = new Set(prev)
-      if (next.has(key)) {
-        next.delete(key)
+      if (prev.includes(key)) {
+        return prev.filter((k) => k !== key)
       } else {
-        next.add(key)
+        return [...prev, key]
       }
-      return next
     })
   }
 
   const clearAllCourseOwners = () => {
-    setSelectedCourseOwners(new Set())
+    setSelectedCourseOwners([])
+  }
+
+  const handleDragStart = (ownerKey: string) => {
+    setOwnerNameBeingDragged(ownerKey)
+  }
+
+  const handleDrop = (targetOwnerKey: string) => {
+    if (!ownerNameBeingDragged || ownerNameBeingDragged === targetOwnerKey) {
+      setOwnerNameBeingDragged(null)
+      return
+    }
+
+    setSelectedCourseOwners((prev) => {
+      const draggedIndex = prev.indexOf(ownerNameBeingDragged)
+      const targetIndex = prev.indexOf(targetOwnerKey)
+
+      if (draggedIndex === -1 || targetIndex === -1) {
+        return prev
+      }
+
+      const newOrder = [...prev]
+      // Remove dragged item
+      newOrder.splice(draggedIndex, 1)
+      // Insert at new position
+      newOrder.splice(targetIndex, 0, ownerNameBeingDragged)
+
+      return newOrder
+    })
+
+    setOwnerNameBeingDragged(null)
   }
 
   return (
     <CourseOwnerContext.Provider
       value={{
         selectedCourseOwners,
+        ownerNameBeingDragged,
         addCourseOwner,
         removeCourseOwner,
         toggleCourseOwner,
         clearAllCourseOwners,
         deserializeCourseOwner,
+        handleDragStart,
+        handleDrop,
       }}
     >
       {children}

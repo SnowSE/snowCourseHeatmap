@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react'
-import { useCourses } from '../hooks/useCourses'
+import { useCourses } from '../components/studentSchedules/useCourses'
 
 const TermContext = createContext<{
   selectedTerm: string

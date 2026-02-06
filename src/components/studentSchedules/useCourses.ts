@@ -6,7 +6,7 @@ import {
   useSuspenseQuery,
 } from '@tanstack/react-query'
 import z from 'zod'
-import { CourseSchema } from '../schemas/courses'
+import { CourseSchema } from '../../schemas/courses'
 import { useTerm } from '@/contexts/TermContext'
 import { withDatabase } from '@/dbUtils'
 

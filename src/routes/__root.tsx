@@ -48,7 +48,7 @@ export const Route = createRootRouteWithContext<{
 function RootComponent() {
   return (
     <TermProvider>
-      <div className="h-screen bg-linear-to-b from-slate-900 via-slate-800 to-slate-900 p-4 text-slate-200 flex flex-col">
+      <div className="h-screen bg-linear-30 from-slate-900 via-slate-800 to-slate-900 p-4 text-slate-200 flex flex-col">
         <div>
           <Header />
         </div>

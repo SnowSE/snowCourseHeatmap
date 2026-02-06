@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
-import { useDepartments } from '@/hooks/useDepartments'
+import { useDepartments } from '@/components/studentSchedules/useDepartments'
 import { useCourseNumbers } from '@/hooks/useCourseNumbers'
 import { AutoCompleteInput } from '@/components/form/AutoCompleteInput'
 

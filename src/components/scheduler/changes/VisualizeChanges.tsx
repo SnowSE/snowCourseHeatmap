@@ -1,4 +1,4 @@
-import { useCoursesInCurrentTerm } from '@/hooks/useCourses'
+import { useCoursesInCurrentTerm } from '@/components/studentSchedules/useCourses'
 import { FC } from 'react'
 import { useCourseChanges } from '../contexts/CourseChangesContext'
 import { formatDays, formatTime12Hour } from './CourseChangesList'

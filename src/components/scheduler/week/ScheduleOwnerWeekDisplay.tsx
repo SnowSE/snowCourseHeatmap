@@ -1,135 +1,51 @@
-import { useCoursesInCurrentTerm } from '@/hooks/useCourses'
-import {
-  useStudentSchedules,
-  useStudentScheduleClassList,
-} from '@/hooks/useStudentSchedules'
-import { FC, useMemo } from 'react'
+import { useCoursesInCurrentTerm } from '@/components/studentSchedules/useCourses'
+import { useStudentSchedules } from '@/hooks/useStudentSchedules'
+import { FC, useState, useRef } from 'react'
 import { ScheduleWeekDisplay } from './ScheduleWeekDisplay'
 import {
   CourseOwner,
   useCourseOwner,
 } from '@/components/scheduler/contexts/CourseOwnerContext'
 import { useCourseChanges } from '@/components/scheduler/contexts/CourseChangesContext'
+import { useCoursesWithChanges } from '@/components/scheduler/week/useCoursesWithChanges'
+import { useOwnerCourses } from '@/components/scheduler/week/useOwnerCourses'
 
 export const ScheduleOwnerWeekDisplay: FC<{
   owner: CourseOwner
 }> = ({ owner }) => {
-  const { removeCourseOwner, addCourseOwner } = useCourseOwner()
+  const {
+    removeCourseOwner,
+    addCourseOwner,
+    handleDragStart,
+    handleDrop,
+    ownerNameBeingDragged,
+  } = useCourseOwner()
   const { data: courses = [] } = useCoursesInCurrentTerm()
   const { data: studentSchedules = [] } = useStudentSchedules()
 
   const { courseChanges } = useCourseChanges()
 
-  const coursesWithChanges = useMemo(() => {
-    if (!courseChanges || courseChanges.length === 0) {
-      console.log(
-        '[ScheduleOwnerWeekDisplay] No changes, returning original courses:',
-        courses.length,
-      )
-      return courses
-    }
+  const [isHovering, setIsHovering] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
 
-    const courseMap = new Map(courses.map((course) => [course.crn, course]))
-    console.log(
-      '[ScheduleOwnerWeekDisplay] Starting with courses:',
-      courseMap.size,
-    )
-    console.log(
-      '[ScheduleOwnerWeekDisplay] Applying changes:',
-      courseChanges.length,
-    )
+  // Serialize owner to get key for drag and drop
+  const serializeOwner = (owner: CourseOwner): string => {
+    if (owner.professorName) return `professor:${owner.professorName}`
+    if (owner.roomName) return `room:${owner.roomName}`
+    if (owner.studentScheduleName)
+      return `studentSchedule:${owner.studentScheduleName}`
+    return ''
+  }
 
-    for (const change of courseChanges) {
-      const existingCourse = courseMap.get(change.crn)
-      if (existingCourse) {
-        console.log(
-          '[ScheduleOwnerWeekDisplay] Applying change to:',
-          change.crn,
-          'Target prof:',
-          change.targetProfessor,
-        )
-        const updatedCourse = {
-          ...existingCourse,
-          meet_info: change.meet_info,
-        }
+  const ownerKey = serializeOwner(owner)
 
-        // If moving to a different professor, update instructors
-        if (change.targetProfessor && change.targetProfessor !== '') {
-          updatedCourse.instructors = [
-            {
-              name: change.targetProfessor,
-              email: null,
-              primary_instructor: true,
-            },
-          ]
-        }
+  const coursesWithChanges = useCoursesWithChanges(courses, courseChanges)
 
-        courseMap.set(change.crn, updatedCourse)
-      }
-    }
-
-    const result = Array.from(courseMap.values())
-    console.log(
-      '[ScheduleOwnerWeekDisplay] Final courses after changes:',
-      result.length,
-    )
-    return result
-  }, [courses, courseChanges])
-
-  const ownerCourses = useMemo(() => {
-    if (owner.professorName) {
-      const filtered = coursesWithChanges.filter((course) =>
-        course.instructors.some((inst) => inst.name === owner.professorName),
-      )
-      console.log(
-        `[ScheduleOwnerWeekDisplay] Owner: ${owner.professorName}, Courses after filter:`,
-        filtered.length,
-        'out of',
-        coursesWithChanges.length,
-      )
-      console.log(
-        '[ScheduleOwnerWeekDisplay] Filtered courses:',
-        filtered
-          .map(
-            (c) =>
-              `${c.subject_code} ${c.course_number} (${c.instructors.map((i) => i.name).join(', ')})`,
-          )
-          .join(', '),
-      )
-      return filtered
-    } else if (owner.roomName) {
-      const filtered = coursesWithChanges.filter((course) =>
-        course.meet_info.some((meet) => {
-          const roomName = meet.building
-            ? `${meet.building} ${meet.room}`
-            : meet.room
-          return roomName === owner.roomName
-        }),
-      )
-      console.log(
-        `[ScheduleOwnerWeekDisplay] Owner: ${owner.roomName}, Courses after filter:`,
-        filtered.length,
-      )
-      return filtered
-    } else if (owner.studentScheduleName) {
-      // Find the student schedule
-      const schedule = studentSchedules.find(
-        (s) => s.name === owner.studentScheduleName,
-      )
-      if (!schedule) {
-        return []
-      }
-
-      // Match courses based on department and course number
-      const filtered = useStudentScheduleClassList(schedule, coursesWithChanges)
-      console.log(
-        `[ScheduleOwnerWeekDisplay] Owner: ${owner.studentScheduleName}, Courses after filter:`,
-        filtered.length,
-      )
-      return filtered
-    }
-    return []
-  }, [coursesWithChanges, owner, studentSchedules])
+  const ownerCourses = useOwnerCourses(
+    owner,
+    coursesWithChanges,
+    studentSchedules,
+  )
 
   const displayName =
     owner.professorName ||
@@ -137,10 +53,45 @@ export const ScheduleOwnerWeekDisplay: FC<{
     owner.studentScheduleName ||
     'Unknown'
 
+  const showDropIndicator =
+    ownerNameBeingDragged && ownerNameBeingDragged !== ownerKey && isHovering
+
   return (
-    <div className="flex flex-col bg-slate-900 rounded-lg border border-slate-600/50 py-3 pe-3">
+    <div
+      ref={containerRef}
+      className={`flex flex-col   border border-slate-600/50 py-3 pe-3 relative transition-all ${
+        showDropIndicator
+          ? 'border-l-4 border-l-blue-500 bg-slate-950 rounded-r-lg'
+          : 'bg-slate-950/30 rounded-lg'
+      }`}
+      onDragOver={(e) => {
+        e.preventDefault() // Allow drop
+        setIsHovering(true)
+      }}
+      onDragLeave={() => {
+        setIsHovering(false)
+      }}
+      onDrop={(e) => {
+        e.preventDefault()
+        setIsHovering(false)
+        handleDrop(ownerKey)
+      }}
+    >
       <div className="flex items-center justify-between px-2 mb-1">
-        <h2 className="text-center font-bold flex-1">{displayName}</h2>
+        <h2
+          className="text-center font-bold flex-1 cursor-move"
+          draggable
+          onDragStart={(e) => {
+            if (containerRef.current) {
+              const width = containerRef.current.offsetWidth
+              e.dataTransfer.setDragImage(containerRef.current, width / 2, 0)
+            }
+            handleDragStart(ownerKey)
+          }}
+          onDragEnd={() => handleDrop(ownerKey)}
+        >
+          {displayName}
+        </h2>
         <button
           onClick={() => removeCourseOwner(owner)}
           className="text-slate-400 hover:text-red-400 transition-colors"

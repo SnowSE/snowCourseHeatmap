@@ -1,5 +1,5 @@
 import { FC, useMemo } from 'react'
-import { ScheduleDayComponent } from './ScheduleDayComponent'
+import { ScheduleDayComponent } from './day/ScheduleDayComponent'
 import { ClassesWeekTimeLabels } from './ClassesWeekTimeLabels'
 import { OnlineCoursesDay } from './OnlineCoursesDay'
 import type { Course } from '@/schemas/courses'

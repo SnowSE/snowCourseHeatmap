@@ -1,8 +1,8 @@
-import { FC, useEffect, useRef } from 'react'
+import { FC, useEffect, useRef, useState } from 'react'
 import type { z } from 'zod'
 import { MeetInfoSchema } from '@/schemas/courses'
 
-interface CourseContextMenuProps {
+export const CourseContextMenu: FC<{
   position: { x: number; y: number }
   courseName: string
   subjectCode: string
@@ -14,30 +14,7 @@ interface CourseContextMenuProps {
   onClose: () => void
   onSelectProfessor: (professor: string) => void
   onSelectRoom: (room: string) => void
-}
-
-const formatTime12Hour = (time: string | null): string => {
-  if (!time) return 'N/A'
-  const [hours, minutes] = time.split(':').map(Number)
-  const period = hours >= 12 ? 'PM' : 'AM'
-  const displayHours = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours
-  return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`
-}
-
-const formatDays = (days: string[]): string => {
-  const dayMap: Record<string, string> = {
-    Monday: 'M',
-    Tuesday: 'T',
-    Wednesday: 'W',
-    Thursday: 'Th',
-    Friday: 'F',
-    Saturday: 'Sa',
-    Sunday: 'Su',
-  }
-  return days.map((d) => dayMap[d] || d).join('')
-}
-
-export const CourseContextMenu: FC<CourseContextMenuProps> = ({
+}> = ({
   position,
   courseName,
   subjectCode,
@@ -51,6 +28,40 @@ export const CourseContextMenu: FC<CourseContextMenuProps> = ({
   onSelectRoom,
 }) => {
   const menuRef = useRef<HTMLDivElement>(null)
+  const [adjustedPosition, setAdjustedPosition] = useState(position)
+
+  useEffect(() => {
+    if (menuRef.current) {
+      const menuRect = menuRef.current.getBoundingClientRect()
+      const viewportHeight = window.innerHeight
+      const viewportWidth = window.innerWidth
+
+      let newX = position.x
+      let newY = position.y
+
+      // Check if menu would go below the viewport
+      if (position.y + menuRect.height > viewportHeight) {
+        newY = viewportHeight - menuRect.height - 10 // 10px padding from bottom
+      }
+
+      // Check if menu would go beyond right edge
+      if (position.x + menuRect.width > viewportWidth) {
+        newX = viewportWidth - menuRect.width - 10 // 10px padding from right
+      }
+
+      // Ensure menu doesn't go above viewport
+      if (newY < 10) {
+        newY = 10
+      }
+
+      // Ensure menu doesn't go beyond left edge
+      if (newX < 10) {
+        newX = 10
+      }
+
+      setAdjustedPosition({ x: newX, y: newY })
+    }
+  }, [position])
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -79,11 +90,10 @@ export const CourseContextMenu: FC<CourseContextMenuProps> = ({
       ref={menuRef}
       className="fixed z-50 bg-slate-800 border border-slate-600 rounded-lg shadow-2xl p-4 min-w-80 max-w-md"
       style={{
-        left: `${position.x}px`,
-        top: `${position.y}px`,
+        left: `${adjustedPosition.x}px`,
+        top: `${adjustedPosition.y}px`,
       }}
     >
-      {/* Course Header */}
       <div className="mb-3 pb-3 border-b border-slate-600">
         <h3 className="font-bold text-lg text-blue-300">
           {subjectCode} {courseNumber}
@@ -92,7 +102,6 @@ export const CourseContextMenu: FC<CourseContextMenuProps> = ({
         <p className="text-xs text-slate-400 mt-1">CRN: {crn}</p>
       </div>
 
-      {/* Meeting Information */}
       <div className="mb-3 pb-3 border-b border-slate-600">
         <h4 className="text-sm font-semibold text-slate-300 mb-2">
           Meeting Times
@@ -159,4 +168,25 @@ export const CourseContextMenu: FC<CourseContextMenuProps> = ({
       )}
     </div>
   )
+}
+
+const formatTime12Hour = (time: string | null): string => {
+  if (!time) return 'N/A'
+  const [hours, minutes] = time.split(':').map(Number)
+  const period = hours >= 12 ? 'PM' : 'AM'
+  const displayHours = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours
+  return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`
+}
+
+const formatDays = (days: string[]): string => {
+  const dayMap: Record<string, string> = {
+    Monday: 'M',
+    Tuesday: 'T',
+    Wednesday: 'W',
+    Thursday: 'Th',
+    Friday: 'F',
+    Saturday: 'Sa',
+    Sunday: 'Su',
+  }
+  return days.map((d) => dayMap[d] || d).join('')
 }

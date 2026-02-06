@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useRefreshCourses } from '../hooks/useCourses'
+import { useRefreshCourses } from './studentSchedules/useCourses'
 import { FormSelect } from './form/FormSelect'
 import { TextInput } from './form/TextInput'
 import type { Course } from '../schemas/courses'

@@ -84,10 +84,10 @@ export const DraggableCourse: FC<{
         onDoubleClick={handleDoubleClick}
         title={`${subjectCode} ${courseNumber} - ${courseName}\n${formatTime12Hour(startTime)} - ${formatTime12Hour(endTime)}${hasConflict ? '\n⚠️ CONFLICT: Schedule overlap detected' : ''}`}
         className={`
-        absolute 
-        ${hasConflict ? 'bg-red-900/70 border-red-500' : 'bg-slate-700 border-blue-800/10'} 
-        border rounded p-1
-        overflow-hidden cursor-move hover:bg-slate-950 hover:border-slate-700 transition-colors`}
+          absolute 
+          ${hasConflict ? 'bg-red-900/70 border-red-500' : 'bg-slate-700 border-slate-800/90'} 
+          border-2 rounded p-1
+          overflow-hidden cursor-move hover:bg-slate-950 hover:border-slate-700 transition-colors`}
         style={{
           top: `${topPercent}%`,
           height: `${heightPercent}%`,
