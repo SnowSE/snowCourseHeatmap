@@ -38,13 +38,16 @@ RUN npm install -g pnpm@latest
 # Copy built application
 COPY --from=builder /app/.output ./.output
 COPY --from=builder /app/package.json ./
-COPY --from=builder /app/pnpm-lock.yaml ./
 
-# Install production dependencies including better-sqlite3
-RUN pnpm install --prod --frozen-lockfile
+# Create .output/server/node_modules if it doesn't exist
+RUN mkdir -p .output/server/node_modules
 
-# Rebuild better-sqlite3 for Alpine Linux in production
-RUN pnpm rebuild better-sqlite3
+# Install better-sqlite3 directly in the output directory
+WORKDIR /app/.output/server
+RUN npm install better-sqlite3@12.6.2 --build-from-source
+
+# Return to app directory
+WORKDIR /app
 
 # Expose port
 EXPOSE 3000
