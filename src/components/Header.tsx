@@ -35,6 +35,15 @@ export const Header = () => {
               >
                 Make Schedule
               </Link>
+              <Link
+                to="/studentSchedule"
+                className="px-4 py-2 rounded-lg text-blue-300 hover:text-blue-100 hover:bg-slate-800/50 font-medium transition-all"
+                activeProps={{
+                  className: 'bg-slate-800 text-blue-100',
+                }}
+              >
+                Student Schedule
+              </Link>
             </nav>
             <div className="flex items-center gap-4">
               {termOptions.length > 0 && (

@@ -9,10 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as StudentScheduleRouteImport } from './routes/studentSchedule'
 import { Route as MakeScheduleRouteImport } from './routes/makeSchedule'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api.trpc.$'
 
+const StudentScheduleRoute = StudentScheduleRouteImport.update({
+  id: '/studentSchedule',
+  path: '/studentSchedule',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MakeScheduleRoute = MakeScheduleRouteImport.update({
   id: '/makeSchedule',
   path: '/makeSchedule',
@@ -32,35 +38,46 @@ const ApiTrpcSplatRoute = ApiTrpcSplatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/makeSchedule': typeof MakeScheduleRoute
+  '/studentSchedule': typeof StudentScheduleRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/makeSchedule': typeof MakeScheduleRoute
+  '/studentSchedule': typeof StudentScheduleRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/makeSchedule': typeof MakeScheduleRoute
+  '/studentSchedule': typeof StudentScheduleRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/makeSchedule' | '/api/trpc/$'
+  fullPaths: '/' | '/makeSchedule' | '/studentSchedule' | '/api/trpc/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/makeSchedule' | '/api/trpc/$'
-  id: '__root__' | '/' | '/makeSchedule' | '/api/trpc/$'
+  to: '/' | '/makeSchedule' | '/studentSchedule' | '/api/trpc/$'
+  id: '__root__' | '/' | '/makeSchedule' | '/studentSchedule' | '/api/trpc/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   MakeScheduleRoute: typeof MakeScheduleRoute
+  StudentScheduleRoute: typeof StudentScheduleRoute
   ApiTrpcSplatRoute: typeof ApiTrpcSplatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/studentSchedule': {
+      id: '/studentSchedule'
+      path: '/studentSchedule'
+      fullPath: '/studentSchedule'
+      preLoaderRoute: typeof StudentScheduleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/makeSchedule': {
       id: '/makeSchedule'
       path: '/makeSchedule'
@@ -88,6 +105,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   MakeScheduleRoute: MakeScheduleRoute,
+  StudentScheduleRoute: StudentScheduleRoute,
   ApiTrpcSplatRoute: ApiTrpcSplatRoute,
 }
 export const routeTree = rootRouteImport

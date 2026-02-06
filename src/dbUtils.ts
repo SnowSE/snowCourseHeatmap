@@ -24,6 +24,21 @@ const initializeSchema = (db: Database.Database) => {
       course_data JSONB NOT NULL,
       FOREIGN KEY (term_code) REFERENCES terms(term_code)
     );
+
+    CREATE TABLE IF NOT EXISTS student_schedules (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+      updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS student_classes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      schedule_id INTEGER NOT NULL,
+      department TEXT NOT NULL,
+      course_name TEXT NOT NULL,
+      FOREIGN KEY (schedule_id) REFERENCES student_schedules(id) ON DELETE CASCADE
+    );
   `)
 }
 
