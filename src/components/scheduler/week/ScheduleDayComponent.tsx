@@ -1,12 +1,19 @@
 import { FC, useMemo } from 'react'
+import { useCourseDrag } from '@/contexts/CourseDragContext'
+import type { z } from 'zod'
+import { MeetInfoSchema } from '@/schemas/courses'
+import type { CourseOwner } from '../ScheduleOwnerList'
+import { DraggableCourse } from './DraggableCourse'
 
 interface CourseMeetingInDay {
   courseName: string
   subjectCode: string
   courseNumber: string
   crn: string
+  term: string
   start_time: string
   end_time: string
+  meet_info: z.infer<typeof MeetInfoSchema>[]
 }
 
 const timeToMinutes = (time: string): number => {
@@ -14,19 +21,14 @@ const timeToMinutes = (time: string): number => {
   return hours * 60 + minutes
 }
 
-const formatTime12Hour = (time: string): string => {
-  const [hours, minutes] = time.split(':').map(Number)
-  const period = hours >= 12 ? 'PM' : 'AM'
-  const displayHours = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours
-  return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`
-}
-
-export const ScheduleWeekDayComponent: FC<{
+export const ScheduleDayComponent: FC<{
   day: string
   meetings: CourseMeetingInDay[]
   dayStartTime: string
   dayEndTime: string
-}> = ({ day, meetings, dayStartTime, dayEndTime }) => {
+  owner?: CourseOwner
+}> = ({ day, meetings, dayStartTime, dayEndTime, owner }) => {
+  const { handleDrop } = useCourseDrag()
   const dayStartMinutes = timeToMinutes(dayStartTime)
   const dayEndMinutes = timeToMinutes(dayEndTime)
   const totalDayMinutes = dayEndMinutes - dayStartMinutes
@@ -69,7 +71,42 @@ export const ScheduleWeekDayComponent: FC<{
   return (
     <div className="flex flex-col gap-2 h-full">
       <h3 className="text-lg font-semibold text-blue-300 text-center">{day}</h3>
-      <div className="relative flex-1 min-h-0  rounded-lg bg-slate-900/30">
+      <div
+        className="relative flex-1 min-h-0  rounded-lg bg-slate-900/30"
+        onDragOver={(e) => {
+          e.preventDefault()
+          e.dataTransfer.dropEffect = 'move'
+        }}
+        onDrop={(e) => {
+          if (!owner) return
+
+          const rect = e.currentTarget.getBoundingClientRect()
+          const y = e.clientY - rect.top
+          const percentY = (y / rect.height) * 100
+          const droppedMinutes = dayStartMinutes + (percentY / 100) * totalDayMinutes
+
+          // Round to nearest 30-minute interval
+          const roundedMinutes = Math.round(droppedMinutes / 30) * 30
+          const hours = Math.floor(roundedMinutes / 60)
+          const minutes = roundedMinutes % 60
+          const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
+
+          // Create new meet_info with the dropped time on this day
+          const newMeetInfo: z.infer<typeof MeetInfoSchema>[] = [
+            {
+              days: [day],
+              start_time: timeString,
+              end_time: null, // Will need to be set based on original duration or default
+              // When dropping on a room, set building/room. Otherwise leave as null to be filled from original
+              building: owner.roomName ? owner.roomName.split(' ')[0] : null,
+              building_code: null,
+              room: owner.roomName ? owner.roomName.split(' ').slice(1).join(' ') : null,
+            },
+          ]
+
+          handleDrop(e, owner.professorName || '', newMeetInfo)
+        }}
+      >
         {/* Time grid lines */}
         {timeGridLines.map((topPercent, idx) => (
           <div
@@ -80,23 +117,19 @@ export const ScheduleWeekDayComponent: FC<{
         ))}
 
         {meetingsWithPositions.map((meeting, idx) => (
-          <div
+          <DraggableCourse
             key={`${meeting.crn}-${idx}`}
-            title={`${meeting.subjectCode} ${meeting.courseNumber} - ${meeting.courseName}\n${formatTime12Hour(meeting.start_time)} - ${formatTime12Hour(meeting.end_time)}`}
-            className="
-              absolute left-0 right-0 mx-1 
-              bg-slate-700 border border-blue-800/10 rounded p-1
-              overflow-hidden cursor-pointer hover:bg-slate-950 hover:border-slate-700 transition-colors"
-            style={{
-              top: `${meeting.topPercent}%`,
-              height: `${meeting.heightPercent}%`,
-            }}
-          >
-            <div className="text-xs truncate">{meeting.courseName}</div>
-            <div className="text-xs">
-              {meeting.subjectCode} {meeting.courseNumber}
-            </div>
-          </div>
+            courseName={meeting.courseName}
+            subjectCode={meeting.subjectCode}
+            courseNumber={meeting.courseNumber}
+            crn={meeting.crn}
+            term={meeting.term}
+            startTime={meeting.start_time}
+            endTime={meeting.end_time}
+            meetInfo={meeting.meet_info}
+            topPercent={meeting.topPercent}
+            heightPercent={meeting.heightPercent}
+          />
         ))}
       </div>
     </div>

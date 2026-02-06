@@ -1,6 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ScheduleOwnerList, CourseOwner } from './ScheduleOwnerList'
-import { ProfessorWeekDisplay } from './week/ProfessorWeekDisplay'
+import { ScheduleOwnerWeekDisplay } from './week/ScheduleOwnerWeekDisplay'
+import { CourseChangesList } from './CourseChangesList'
+
+const STORAGE_KEY = 'selectedCourseOwners'
 
 const serializeCourseOwner = (owner: CourseOwner): string => {
   if (owner.professorName) return `professor:${owner.professorName}`
@@ -16,11 +19,45 @@ const deserializeCourseOwner = (key: string): CourseOwner | null => {
   return null
 }
 
+const loadFromLocalStorage = (): Set<string> => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY)
+    if (stored) {
+      const parsed = JSON.parse(stored) as string[]
+      return new Set(parsed)
+    }
+  } catch (error) {
+    console.error(
+      'Failed to load selected course owners from localStorage:',
+      error,
+    )
+  }
+  return new Set()
+}
+
+const saveToLocalStorage = (selectedOwners: Set<string>) => {
+  try {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(Array.from(selectedOwners)),
+    )
+  } catch (error) {
+    console.error(
+      'Failed to save selected course owners to localStorage:',
+      error,
+    )
+  }
+}
+
 export const ScheduleViewer = () => {
   const [selectedCourseOwners, setSelectedCourseOwners] = useState<Set<string>>(
-    new Set(),
+    () => loadFromLocalStorage(),
   )
   const [filter, setFilter] = useState('')
+
+  useEffect(() => {
+    saveToLocalStorage(selectedCourseOwners)
+  }, [selectedCourseOwners])
 
   const toggleCourseOwner = (owner: CourseOwner) => {
     const key = serializeCourseOwner(owner)
@@ -78,10 +115,13 @@ export const ScheduleViewer = () => {
           if (!owner) return null
           return (
             <div key={key} className=" p-3">
-              <ProfessorWeekDisplay owner={owner} />
+              <ScheduleOwnerWeekDisplay owner={owner} />
             </div>
           )
         })}
+      </div>
+      <div className='w-96'>
+        <CourseChangesList />
       </div>
     </div>
   )

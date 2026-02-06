@@ -1,4 +1,5 @@
 import { ScheduleViewer } from '@/components/scheduler/ScheduleViewer'
+import { CourseDragProvider } from '@/contexts/CourseDragContext'
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/makeSchedule')({
@@ -8,7 +9,9 @@ export const Route = createFileRoute('/makeSchedule')({
 function MakeSchedule() {
   return (
     <div className="w-full text-blue-100 flex flex-col h-full">
-      <ScheduleViewer />
+      <CourseDragProvider>
+        <ScheduleViewer />
+      </CourseDragProvider>
     </div>
   )
 }
