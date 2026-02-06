@@ -50,20 +50,19 @@ function StudentSchedulePage() {
                       hover:bg-blue-500/30 text-slate-50 transition-colors flex items-center gap-2"
           >
             <Plus size={18} />
-            New Schedule
+            {isCreating ? 'Cancel' : 'Create Schedule'}
           </button>
         </div>
 
         {isCreating && (
-          <div className="rounded-lg border border-slate-200/20 bg-slate-200/5 p-6">
-            <h3 className="text-lg font-semibold text-slate-50 mb-4">
-              Create New Schedule
-            </h3>
-            <StudentScheduleCreateForm
-              onSubmit={handleCreate}
-              onCancel={() => setIsCreating(false)}
-              isSubmitting={createSchedule.isPending}
-            />
+          <div className="flex justify-end ">
+            <div className="bg-slate-950/50 p-6 rounded-lg shadow-md w-full max-w-md">
+              <StudentScheduleCreateForm
+                onSubmit={handleCreate}
+                onCancel={() => setIsCreating(false)}
+                isSubmitting={createSchedule.isPending}
+              />
+            </div>
           </div>
         )}
 
