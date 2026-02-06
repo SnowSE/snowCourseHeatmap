@@ -21,7 +21,7 @@ const formatTime12Hour = (time: string): string => {
   return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`
 }
 
-export const ClassesWeekDayComponent: FC<{
+export const ScheduleWeekDayComponent: FC<{
   day: string
   meetings: CourseMeetingInDay[]
   dayStartTime: string

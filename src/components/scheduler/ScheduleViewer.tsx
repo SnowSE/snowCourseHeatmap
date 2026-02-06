@@ -1,5 +1,5 @@
 import { Fragment, useState } from 'react'
-import { ProfessorList } from './ProfessorList'
+import { ScheduleOwnerList } from './ScheduleOwnerList'
 import { ProfessorWeekDisplay } from './ProfessorWeekDisplay'
 
 export const ScheduleViewer = () => {
@@ -51,7 +51,7 @@ export const ScheduleViewer = () => {
             Clear Selection ({selectedProfessors.size})
           </button>
         </div>
-        <ProfessorList
+        <ScheduleOwnerList
           filter={professorFilter}
           selectedProfessors={selectedProfessors}
           onToggleProfessor={toggleProfessor}

@@ -14,7 +14,7 @@ interface ProfessorListProps {
   onToggleProfessor: (professorName: string) => void
 }
 
-export const ProfessorList: FC<ProfessorListProps> = ({
+export const ScheduleOwnerList: FC<ProfessorListProps> = ({
   filter,
   selectedProfessors,
   onToggleProfessor,
@@ -109,9 +109,11 @@ export const ProfessorList: FC<ProfessorListProps> = ({
               }`}
             >
               <div className="text-white font-medium">{professor}</div>
-              <div className="text-sm text-white/70">
-                {creditCount} credit{creditCount !== 1 ? 's' : ''} (
-                {courses.length} course{courses.length !== 1 ? 's' : ''})
+              <div className="">
+                {creditCount}{' '}
+                <span className="text-sm text-white/70">
+                  credit{creditCount !== 1 ? 's' : ''}
+                </span>
               </div>
             </div>
           )
