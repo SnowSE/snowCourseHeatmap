@@ -2,6 +2,7 @@ import { createContext, useContext, useState, type ReactNode } from 'react'
 import { type z } from 'zod'
 import { MeetInfoSchema } from '../../../schemas/courses'
 import { useCourseChanges } from './CourseChangesContext'
+import { useAddOrUpdateChange } from '@/hooks/useCourseChangeGroups'
 
 const CourseDragContext = createContext<
   | {
@@ -25,7 +26,8 @@ const CourseDragContext = createContext<
 >(undefined)
 
 export function CourseDragProvider({ children }: { children: ReactNode }) {
-  const { addOrUpdateCourseChange } = useCourseChanges()
+  const { activeGroupName, activeGroupId } = useCourseChanges()
+  const addOrUpdateChangeMutation = useAddOrUpdateChange()
 
   const [dragState, setDragState] = useState<{
     isDragging: boolean
@@ -78,6 +80,12 @@ export function CourseDragProvider({ children }: { children: ReactNode }) {
     targetRoom?: string,
     isStudentSchedule?: boolean,
   ) => {
+    if (!activeGroupName) {
+      alert('⚠️ Please select or create a change group before making course changes.')
+      handleDragEnd()
+      return
+    }
+
     if (dragState.crn && dragState.term && dragState.originalMeetInfo) {
       const originalMeet = dragState.originalMeetInfo[0]
 
@@ -107,13 +115,18 @@ export function CourseDragProvider({ children }: { children: ReactNode }) {
         dragState.originalProfessor,
       )
 
-      addOrUpdateCourseChange({
-        crn: dragState.crn,
-        term: dragState.term,
-        targetProfessor: professorToUse,
-        meet_info: [newMeetInfo],
-        timestamp: Date.now(),
-      })
+      if (activeGroupId) {
+        addOrUpdateChangeMutation.mutate({
+          groupId: activeGroupId,
+          change: {
+            crn: dragState.crn,
+            term: dragState.term,
+            targetProfessor: professorToUse,
+            meet_info: [newMeetInfo],
+            timestamp: Date.now(),
+          },
+        })
+      }
     }
 
     handleDragEnd()

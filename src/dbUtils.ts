@@ -39,6 +39,24 @@ const initializeSchema = (db: Database.Database) => {
       course_name TEXT NOT NULL,
       FOREIGN KEY (schedule_id) REFERENCES student_schedules(id) ON DELETE CASCADE
     );
+
+    CREATE TABLE IF NOT EXISTS course_change_groups (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE,
+      created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS course_changes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      group_id INTEGER NOT NULL,
+      crn TEXT NOT NULL,
+      term TEXT NOT NULL,
+      target_professor TEXT NOT NULL,
+      meet_info TEXT NOT NULL,
+      timestamp INTEGER NOT NULL,
+      FOREIGN KEY (group_id) REFERENCES course_change_groups(id) ON DELETE CASCADE
+    );
+
   `)
 }
 

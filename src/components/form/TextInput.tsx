@@ -1,6 +1,6 @@
 export const TextInput: React.FC<
   Omit<React.InputHTMLAttributes<HTMLInputElement>, 'className'> & {
-    label?: string
+    label: string
     upperCase?: boolean
     inputRef?: React.RefObject<HTMLInputElement | null>
   }
@@ -21,7 +21,6 @@ export const TextInput: React.FC<
       {label && (
         <label
           className="absolute left-3 top-2 text-slate-400 text-sm transition-all duration-200 pointer-events-none
-
                      peer-placeholder-shown:top-3 peer-placeholder-shown:text-sm
                      peer-focus:top-0 peer-focus:text-xs 
                      peer-focus:text-slate-400

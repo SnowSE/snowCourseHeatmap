@@ -1,13 +1,8 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  type ReactNode,
-} from 'react'
+import { createContext, useContext, useState, type ReactNode } from 'react'
 import { type z } from 'zod'
 import { MeetInfoSchema, type Course } from '../../../schemas/courses'
 import { type StudentSchedule } from '@/schemas/studentSchedule'
+import { useChangeGroups, type CourseChangeGroup } from '@/hooks/useChangeHooks'
 
 export type CourseChange = {
   crn: string
@@ -29,80 +24,51 @@ export type ConflictInfo = {
 const CourseChangesContext = createContext<
   | {
       courseChanges: CourseChange[]
-      addOrUpdateCourseChange: (change: CourseChange) => void
-      removeCourseChange: (crn: string) => void
-      clearCourseChanges: () => void
+      activeGroupName: string | null
+      activeGroupId: number | null
+      groupNames: string[]
+      groups: CourseChangeGroup[]
+      setActiveGroupName: (groupName: string | null) => void
+      isLoading: boolean
     }
   | undefined
 >(undefined)
 
-// Helper function to convert time string to minutes since midnight
 export function timeToMinutes(time: string): number {
   const [hours, minutes] = time.split(':').map(Number)
   return hours * 60 + minutes
 }
 
-const STORAGE_KEY = 'courseChanges'
-
-// Load course changes from localStorage
-function loadCourseChangesFromStorage(): CourseChange[] {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    return stored ? JSON.parse(stored) : []
-  } catch (error) {
-    console.error('Failed to load course changes from localStorage:', error)
-    return []
-  }
-}
-
-// Save course changes to localStorage
-function saveCourseChangesToStorage(changes: CourseChange[]): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(changes))
-  } catch (error) {
-    console.error('Failed to save course changes to localStorage:', error)
-  }
-}
-
 export function CourseChangesProvider({ children }: { children: ReactNode }) {
-  const [courseChanges, setCourseChanges] = useState<CourseChange[]>(() =>
-    loadCourseChangesFromStorage(),
+  const [activeGroupName, setActiveGroupNameState] = useState<string | null>(
+    null,
   )
 
-  useEffect(() => {
-    saveCourseChangesToStorage(courseChanges)
-  }, [courseChanges])
+  const { data: groups = [], isLoading } = useChangeGroups()
 
-  const addOrUpdateCourseChange = (change: CourseChange) => {
-    setCourseChanges((prev) => {
-      const existingIndex = prev.findIndex((c) => c.crn === change.crn)
-      if (existingIndex >= 0) {
-        // Replace existing change
-        const updated = [...prev]
-        updated[existingIndex] = change
-        return updated
-      } else {
-        // Add new change
-        return [...prev, change]
-      }
-    })
-  }
+  const groupNames = groups.map((g: CourseChangeGroup) => g.name)
 
-  const removeCourseChange = (crn: string) => {
-    setCourseChanges((prev) => prev.filter((change) => change.crn !== crn))
-  }
+  const activeGroup = groups.find(
+    (g: CourseChangeGroup) => g.name === activeGroupName,
+  )
 
-  const clearCourseChanges = () => {
-    setCourseChanges([])
+  const courseChanges = activeGroup?.changes ?? []
+  const activeGroupId = activeGroup?.id ?? null
+
+  const setActiveGroupName = (groupName: string | null) => {
+    setActiveGroupNameState(groupName)
   }
 
   return (
     <CourseChangesContext.Provider
       value={{
         courseChanges,
-        addOrUpdateCourseChange,
-        removeCourseChange,
-        clearCourseChanges,
+        activeGroupName,
+        activeGroupId,
+        groupNames,
+        groups,
+        setActiveGroupName,
+        isLoading,
       }}
     >
       {children}
