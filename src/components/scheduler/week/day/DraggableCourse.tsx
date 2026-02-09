@@ -29,6 +29,7 @@ export const DraggableCourse: FC<{
   creditHours?: number
   onSelectProfessor?: (professor: string) => void
   onSelectRoom?: (room: string) => void
+  onDeleteCourse?: () => void
 }> = ({
   courseName,
   subjectCode,
@@ -47,6 +48,7 @@ export const DraggableCourse: FC<{
   creditHours,
   onSelectProfessor,
   onSelectRoom,
+  onDeleteCourse,
 }) => {
   const { handleDragStart } = useCourseDrag()
   const [contextMenu, setContextMenu] = useState<{
@@ -127,6 +129,7 @@ export const DraggableCourse: FC<{
           onClose={() => setContextMenu(null)}
           onSelectProfessor={(prof) => onSelectProfessor?.(prof)}
           onSelectRoom={(room) => onSelectRoom?.(room)}
+          onDeleteCourse={onDeleteCourse}
         />
       )}
     </>

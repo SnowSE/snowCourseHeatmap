@@ -14,6 +14,7 @@ export const CourseContextMenu: FC<{
   onClose: () => void
   onSelectProfessor: (professor: string) => void
   onSelectRoom: (room: string) => void
+  onDeleteCourse?: () => void
 }> = ({
   position,
   courseName,
@@ -26,6 +27,7 @@ export const CourseContextMenu: FC<{
   onClose,
   onSelectProfessor,
   onSelectRoom,
+  onDeleteCourse,
 }) => {
   const menuRef = useRef<HTMLDivElement>(null)
   const [adjustedPosition, setAdjustedPosition] = useState(position)
@@ -164,6 +166,21 @@ export const CourseContextMenu: FC<{
               </button>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Delete Course */}
+      {onDeleteCourse && (
+        <div className="mt-3 pt-3 border-t border-slate-600">
+          <button
+            onClick={() => {
+              onDeleteCourse()
+              onClose()
+            }}
+            className="w-full text-left px-3 py-2 text-sm bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded transition-colors text-red-300"
+          >
+            Delete Course from Schedule
+          </button>
         </div>
       )}
     </div>

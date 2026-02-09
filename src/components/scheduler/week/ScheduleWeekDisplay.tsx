@@ -10,7 +10,8 @@ export const ScheduleWeekDisplay: FC<{
   owner?: CourseOwner
   onSelectProfessor?: (professor: string) => void
   onSelectRoom?: (room: string) => void
-}> = ({ courses, owner, onSelectProfessor, onSelectRoom }) => {
+  onDeleteCourse?: (crn: string, term: string) => void
+}> = ({ courses, owner, onSelectProfessor, onSelectRoom, onDeleteCourse }) => {
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
 
   const { regularCourses, onlineCourses } = useMemo(() => {
@@ -51,6 +52,7 @@ export const ScheduleWeekDisplay: FC<{
             owner={owner}
             onSelectProfessor={onSelectProfessor}
             onSelectRoom={onSelectRoom}
+            onDeleteCourse={onDeleteCourse}
           />
         ))}
       </div>

@@ -48,7 +48,7 @@ export const CourseChangesList: FC = () => {
           <div className="px-3">
             <button
               onClick={() => setIsAddFormOpen(true)}
-              className="w-full px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors font-medium"
+              className="w-full px-4 py-2 rounded-lg bg-blue-950 border border-blue-700/50 text-white hover:bg-blue-900 transition-colors font-medium"
             >
               Add Course Change
             </button>

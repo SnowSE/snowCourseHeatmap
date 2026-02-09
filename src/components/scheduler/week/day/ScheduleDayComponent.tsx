@@ -31,6 +31,7 @@ export const ScheduleDayComponent: FC<{
   owner?: CourseOwner
   onSelectProfessor?: (professor: string) => void
   onSelectRoom?: (room: string) => void
+  onDeleteCourse?: (crn: string, term: string) => void
 }> = ({
   day,
   meetings,
@@ -39,6 +40,7 @@ export const ScheduleDayComponent: FC<{
   owner,
   onSelectProfessor,
   onSelectRoom,
+  onDeleteCourse,
 }) => {
   const dayStartMinutes = timeToMinutes(dayStartTime)
   const dayEndMinutes = timeToMinutes(dayEndTime)
@@ -149,6 +151,7 @@ export const ScheduleDayComponent: FC<{
               creditHours={meeting.creditHours}
               onSelectProfessor={onSelectProfessor}
               onSelectRoom={onSelectRoom}
+              onDeleteCourse={() => onDeleteCourse?.(meeting.crn, meeting.term)}
             />
           )
         })}

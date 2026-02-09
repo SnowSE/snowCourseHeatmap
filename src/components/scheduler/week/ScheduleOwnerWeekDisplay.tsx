@@ -9,6 +9,7 @@ import {
 import { useCourseChanges } from '@/components/scheduler/contexts/CourseChangesContext'
 import { useCoursesWithChanges } from '@/components/scheduler/week/useCoursesWithChanges'
 import { useOwnerCourses } from '@/components/scheduler/week/useOwnerCourses'
+import { useAddOrUpdateChange } from '@/hooks/useCourseChangeGroups'
 
 export const ScheduleOwnerWeekDisplay: FC<{
   owner: CourseOwner
@@ -23,7 +24,8 @@ export const ScheduleOwnerWeekDisplay: FC<{
   const { data: courses = [] } = useCoursesInCurrentTerm()
   const { data: studentSchedules = [] } = useStudentSchedules()
 
-  const { courseChanges } = useCourseChanges()
+  const { courseChanges, activeGroupId } = useCourseChanges()
+  const addOrUpdateChangeMutation = useAddOrUpdateChange()
 
   const [isHovering, setIsHovering] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -61,6 +63,28 @@ export const ScheduleOwnerWeekDisplay: FC<{
 
   const showDropIndicator =
     ownerNameBeingDragged && ownerNameBeingDragged !== ownerKey && isHovering
+
+  const handleDeleteCourse = async (crn: string, term: string) => {
+    if (!activeGroupId) {
+      return
+    }
+
+    try {
+      await addOrUpdateChangeMutation.mutateAsync({
+        groupId: activeGroupId,
+        change: {
+          crn,
+          term,
+          courseName: '__DELETED__',
+          targetProfessor: '',
+          meet_info: [],
+          timestamp: Date.now(),
+        },
+      })
+    } catch (error) {
+      console.error('Failed to delete course:', error)
+    }
+  }
 
   return (
     <div
@@ -129,6 +153,7 @@ export const ScheduleOwnerWeekDisplay: FC<{
         owner={owner}
         onSelectProfessor={(prof) => addCourseOwner({ professorName: prof })}
         onSelectRoom={(room) => addCourseOwner({ roomName: room })}
+        onDeleteCourse={activeGroupId ? handleDeleteCourse : undefined}
       />
     </div>
   )

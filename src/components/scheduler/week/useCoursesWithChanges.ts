@@ -19,29 +19,41 @@ export function useCoursesWithChanges(
 
     for (const change of courseChanges) {
       const existingCourse = courseMap.get(change.crn)
+
+      // Check if this is a deletion change (empty meet_info and empty professor)
+      const isDeletion =
+        change.meet_info.length === 0 &&
+        (!change.targetProfessor || change.targetProfessor === '')
+
       if (existingCourse) {
-        console.log(
-          '[useCoursesWithChanges] Applying change to:',
-          change.crn,
-          'Target prof:',
-          change.targetProfessor,
-        )
-        const updatedCourse = {
-          ...existingCourse,
-          meet_info: change.meet_info,
-        }
+        if (isDeletion) {
+          console.log('[useCoursesWithChanges] Deleting course:', change.crn)
+          // Remove the course from the map for deletion changes
+          courseMap.delete(change.crn)
+        } else {
+          console.log(
+            '[useCoursesWithChanges] Applying change to:',
+            change.crn,
+            'Target prof:',
+            change.targetProfessor,
+          )
+          const updatedCourse = {
+            ...existingCourse,
+            meet_info: change.meet_info,
+          }
 
-        if (change.targetProfessor && change.targetProfessor !== '') {
-          updatedCourse.instructors = [
-            {
-              name: change.targetProfessor,
-              email: null,
-              primary_instructor: true,
-            },
-          ]
-        }
+          if (change.targetProfessor && change.targetProfessor !== '') {
+            updatedCourse.instructors = [
+              {
+                name: change.targetProfessor,
+                email: null,
+                primary_instructor: true,
+              },
+            ]
+          }
 
-        courseMap.set(change.crn, updatedCourse)
+          courseMap.set(change.crn, updatedCourse)
+        }
       } else {
         // Create a new course for changes without an existing course
         console.log(
