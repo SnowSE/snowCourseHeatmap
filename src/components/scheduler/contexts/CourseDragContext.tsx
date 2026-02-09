@@ -13,6 +13,7 @@ const CourseDragContext = createContext<
         originalMeetInfo: z.infer<typeof MeetInfoSchema>[],
         originalProfessor?: string,
         creditHours?: number,
+        courseName?: string,
       ) => void
       handleDrop: (
         day: string,
@@ -36,6 +37,7 @@ export function CourseDragProvider({ children }: { children: ReactNode }) {
     originalMeetInfo: z.infer<typeof MeetInfoSchema>[] | null
     originalProfessor: string | null
     creditHours: number | null
+    courseName: string | null
   }>({
     isDragging: false,
     crn: null,
@@ -43,6 +45,7 @@ export function CourseDragProvider({ children }: { children: ReactNode }) {
     originalMeetInfo: null,
     originalProfessor: null,
     creditHours: null,
+    courseName: null,
   })
 
   const handleDragStart = (
@@ -51,6 +54,7 @@ export function CourseDragProvider({ children }: { children: ReactNode }) {
     originalMeetInfo: z.infer<typeof MeetInfoSchema>[],
     originalProfessor?: string,
     creditHours?: number,
+    courseName?: string,
   ) => {
     setDragState({
       isDragging: true,
@@ -59,6 +63,7 @@ export function CourseDragProvider({ children }: { children: ReactNode }) {
       originalMeetInfo,
       originalProfessor: originalProfessor || null,
       creditHours: creditHours ?? null,
+      courseName: courseName || null,
     })
   }
 
@@ -70,6 +75,7 @@ export function CourseDragProvider({ children }: { children: ReactNode }) {
       originalMeetInfo: null,
       originalProfessor: null,
       creditHours: null,
+      courseName: null,
     })
   }
 
@@ -122,6 +128,7 @@ export function CourseDragProvider({ children }: { children: ReactNode }) {
             crn: dragState.crn,
             term: dragState.term,
             targetProfessor: professorToUse,
+            courseName: dragState.courseName || undefined,
             meet_info: [newMeetInfo],
             timestamp: Date.now(),
           },

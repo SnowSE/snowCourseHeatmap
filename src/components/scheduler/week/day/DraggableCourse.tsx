@@ -80,7 +80,14 @@ export const DraggableCourse: FC<{
         draggable
         onDragStart={(e) => {
           e.dataTransfer.effectAllowed = 'move'
-          handleDragStart(crn, term, meetInfo, instructors[0], creditHours)
+          handleDragStart(
+            crn,
+            term,
+            meetInfo,
+            instructors[0],
+            creditHours,
+            courseName,
+          )
         }}
         onContextMenu={handleContextMenu}
         onDoubleClick={handleDoubleClick}
