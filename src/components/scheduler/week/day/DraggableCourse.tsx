@@ -2,7 +2,7 @@ import { FC, useState } from 'react'
 import { useCourseDrag } from '@/components/scheduler/contexts/CourseDragContext'
 import type { z } from 'zod'
 import { MeetInfoSchema } from '@/schemas/courses'
-import { CourseContextMenu } from './CourseContextMenu'
+import { CourseContextMenu } from './contextMenu/CourseContextMenu'
 
 const formatTime12Hour = (time: string): string => {
   const [hours, minutes] = time.split(':').map(Number)
@@ -130,6 +130,7 @@ export const DraggableCourse: FC<{
           subjectCode={subjectCode}
           courseNumber={courseNumber}
           crn={crn}
+          term={term}
           instructors={instructors}
           rooms={rooms}
           meetInfo={meetInfo}

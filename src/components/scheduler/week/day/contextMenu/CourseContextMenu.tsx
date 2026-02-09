@@ -1,6 +1,9 @@
 import { FC, useEffect, useRef, useState } from 'react'
 import type { z } from 'zod'
 import { MeetInfoSchema } from '@/schemas/courses'
+import { CourseContextMenuMeetingTimes } from './CourseContextMenuMeetingTimes'
+import { RoomContextMenu } from './RoomContextMenu'
+import { InstructorContextMenu } from './InstructorContextMenu'
 
 export const CourseContextMenu: FC<{
   position: { x: number; y: number }
@@ -8,6 +11,7 @@ export const CourseContextMenu: FC<{
   subjectCode: string
   courseNumber: string
   crn: string
+  term: string
   instructors: string[]
   rooms: string[]
   meetInfo: z.infer<typeof MeetInfoSchema>[]
@@ -21,6 +25,7 @@ export const CourseContextMenu: FC<{
   subjectCode,
   courseNumber,
   crn,
+  term,
   instructors,
   rooms,
   meetInfo,
@@ -103,75 +108,37 @@ export const CourseContextMenu: FC<{
         <p className="text-sm text-slate-300">{courseName}</p>
         <p className="text-xs text-slate-400 mt-1">CRN: {crn}</p>
       </div>
+      <CourseContextMenuMeetingTimes
+        meetInfo={meetInfo}
+        crn={crn}
+        term={term}
+        courseName={courseName}
+        targetProfessor={instructors[0] || ''}
+      />
+      <InstructorContextMenu
+        instructors={instructors}
+        crn={crn}
+        term={term}
+        courseName={courseName}
+        meetInfo={meetInfo}
+        onSelectProfessor={onSelectProfessor}
+        onClose={onClose}
+      />
 
-      <div className="mb-3 pb-3 border-b border-slate-600">
-        <h4 className="text-sm font-semibold text-slate-300 mb-2">
-          Meeting Times
-        </h4>
-        {meetInfo.map((meet, idx) => (
-          <div key={idx} className="text-sm text-slate-300 mb-2">
-            <div className="font-mono text-xs">
-              {formatDays(meet.days)} {formatTime12Hour(meet.start_time)}-
-              {formatTime12Hour(meet.end_time)}
-            </div>
-            {meet.building && (
-              <div className="text-xs text-slate-400">
-                {meet.building} {meet.room}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* Instructors */}
-      {instructors.length > 0 && (
-        <div className="mb-3">
-          <h4 className="text-sm font-semibold text-slate-300 mb-2">
-            Select Professor Schedule
-          </h4>
-          <div className="space-y-1">
-            {instructors.map((instructor, idx) => (
-              <button
-                key={idx}
-                onClick={() => {
-                  onSelectProfessor(instructor)
-                  onClose()
-                }}
-                className="w-full text-left px-3 py-2 text-sm bg-slate-700 hover:bg-slate-600 rounded transition-colors text-slate-200"
-              >
-                {instructor}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Rooms */}
-      {rooms.length > 0 && (
-        <div>
-          <h4 className="text-sm font-semibold text-slate-300 mb-2">
-            Select Room Schedule
-          </h4>
-          <div className="space-y-1">
-            {rooms.map((room, idx) => (
-              <button
-                key={idx}
-                onClick={() => {
-                  onSelectRoom(room)
-                  onClose()
-                }}
-                className="w-full text-left px-3 py-2 text-sm bg-slate-700 hover:bg-slate-600 rounded transition-colors text-slate-200"
-              >
-                {room}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+      <RoomContextMenu
+        rooms={rooms}
+        crn={crn}
+        term={term}
+        courseName={courseName}
+        meetInfo={meetInfo}
+        instructors={instructors}
+        onSelectRoom={onSelectRoom}
+        onClose={onClose}
+      />
 
       {/* Delete Course */}
       {onDeleteCourse && (
-        <div className="mt-3 pt-3 border-t border-slate-600">
+        <div className="mt-3 pt-3 ">
           <button
             onClick={() => {
               onDeleteCourse()
@@ -185,25 +152,4 @@ export const CourseContextMenu: FC<{
       )}
     </div>
   )
-}
-
-const formatTime12Hour = (time: string | null): string => {
-  if (!time) return 'N/A'
-  const [hours, minutes] = time.split(':').map(Number)
-  const period = hours >= 12 ? 'PM' : 'AM'
-  const displayHours = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours
-  return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`
-}
-
-const formatDays = (days: string[]): string => {
-  const dayMap: Record<string, string> = {
-    Monday: 'M',
-    Tuesday: 'T',
-    Wednesday: 'W',
-    Thursday: 'Th',
-    Friday: 'F',
-    Saturday: 'Sa',
-    Sunday: 'Su',
-  }
-  return days.map((d) => dayMap[d] || d).join('')
 }
