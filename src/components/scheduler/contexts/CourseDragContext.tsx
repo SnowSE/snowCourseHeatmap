@@ -87,7 +87,9 @@ export function CourseDragProvider({ children }: { children: ReactNode }) {
     isStudentSchedule?: boolean,
   ) => {
     if (!activeGroupName) {
-      alert('⚠️ Please select or create a change group before making course changes.')
+      alert(
+        '⚠️ Please select or create a change group before making course changes.',
+      )
       handleDragEnd()
       return
     }

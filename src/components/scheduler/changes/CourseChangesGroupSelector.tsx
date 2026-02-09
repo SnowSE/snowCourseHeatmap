@@ -4,8 +4,10 @@ import {
   useCreateChangeGroup,
   useDeleteChangeGroup,
   useRenameChangeGroup,
+  useDuplicateChangeGroup,
 } from '@/hooks/useCourseChangeGroups'
 import { TextInput } from '@/components/form/TextInput'
+import { Modal } from '@/components/Modal'
 
 export const CourseChangesGroupSelector: FC = () => {
   const { activeGroupName, groupNames, groups, setActiveGroupName } =
@@ -14,12 +16,14 @@ export const CourseChangesGroupSelector: FC = () => {
   const createGroupMutation = useCreateChangeGroup()
   const deleteGroupMutation = useDeleteChangeGroup()
   const renameGroupMutation = useRenameChangeGroup()
+  const duplicateGroupMutation = useDuplicateChangeGroup()
 
   const [isCreating, setIsCreating] = useState(false)
   const [newGroupName, setNewGroupName] = useState('')
   const [editingGroup, setEditingGroup] = useState<string | null>(null)
   const [editGroupName, setEditGroupName] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [groupToDelete, setGroupToDelete] = useState<string | null>(null)
 
   const handleCreateGroup = async () => {
     try {
@@ -70,18 +74,37 @@ export const CourseChangesGroupSelector: FC = () => {
   }
 
   const handleDeleteGroup = async (groupName: string) => {
-    if (
-      confirm(
-        `Are you sure you want to delete the group "${groupName}"? This will remove all course changes in this group.`,
-      )
-    ) {
+    const group = groups.find((g) => g.name === groupName)
+    if (!group) return
+
+    await deleteGroupMutation.mutateAsync(group.id)
+    if (activeGroupName === groupName) {
+      setActiveGroupName(null)
+    }
+    setGroupToDelete(null)
+  }
+
+  const handleDuplicateGroup = async (groupName: string) => {
+    try {
+      setError(null)
       const group = groups.find((g) => g.name === groupName)
       if (!group) return
 
-      await deleteGroupMutation.mutateAsync(group.id)
-      if (activeGroupName === groupName) {
-        setActiveGroupName(null)
+      // Generate a unique name for the duplicate
+      let newName = `${groupName} (Copy)`
+      let counter = 1
+      while (groupNames.includes(newName)) {
+        counter++
+        newName = `${groupName} (Copy ${counter})`
       }
+
+      await duplicateGroupMutation.mutateAsync({
+        oldGroupId: group.id,
+        newName,
+      })
+      setActiveGroupName(newName)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to duplicate group')
     }
   }
 
@@ -229,6 +252,33 @@ export const CourseChangesGroupSelector: FC = () => {
                 </button>
                 <div className="flex gap-2">
                   <button
+                    onClick={() => handleDuplicateGroup(groupName)}
+                    className="p-1 text-slate-400 hover:text-green-400 transition-colors"
+                    title="Duplicate group"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <rect
+                        x="9"
+                        y="9"
+                        width="13"
+                        height="13"
+                        rx="2"
+                        ry="2"
+                      ></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                  </button>
+                  <button
                     onClick={() => startEditing(groupName)}
                     className="p-1 text-slate-400 hover:text-blue-400 transition-colors"
                     title="Rename group"
@@ -249,7 +299,7 @@ export const CourseChangesGroupSelector: FC = () => {
                     </svg>
                   </button>
                   <button
-                    onClick={() => handleDeleteGroup(groupName)}
+                    onClick={() => setGroupToDelete(groupName)}
                     className="p-1 text-slate-400 hover:text-red-400 transition-colors"
                     title="Delete group"
                   >
@@ -274,6 +324,37 @@ export const CourseChangesGroupSelector: FC = () => {
           </div>
         ))}
       </div>
+
+      <Modal
+        isOpen={groupToDelete !== null}
+        onClose={() => setGroupToDelete(null)}
+        title="Delete Group"
+      >
+        <div className="space-y-4">
+          <p className="text-slate-300">
+            Are you sure you want to delete the group{' '}
+            <span className="font-semibold text-white">"{groupToDelete}"</span>?
+          </p>
+          <p className="text-slate-400 text-sm">
+            This will remove all course changes in this group. This action
+            cannot be undone.
+          </p>
+          <div className="flex gap-3 justify-end">
+            <button
+              onClick={() => setGroupToDelete(null)}
+              className="px-4 py-2 text-sm bg-slate-600/50 hover:bg-slate-600/70 border border-slate-500/50 rounded transition-colors text-white"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => groupToDelete && handleDeleteGroup(groupToDelete)}
+              className="px-4 py-2 text-sm bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded transition-colors text-red-400 hover:text-red-300"
+            >
+              Delete Group
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }

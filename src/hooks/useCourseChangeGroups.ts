@@ -73,6 +73,64 @@ export const createChangeGroup = createServerFn()
     })
   })
 
+export const duplicateChangeGroup = createServerFn()
+  .inputValidator(z.object({ oldGroupId: z.number(), newName: z.string() }))
+  .handler(async ({ data }) => {
+    return withDatabase((db) => {
+      // Get the old group and its changes
+      const oldGroup = db
+        .prepare(
+          'SELECT id, name, created_at as createdAt FROM course_change_groups WHERE id = ?',
+        )
+        .get(data.oldGroupId) as
+        | { id: number; name: string; createdAt: number }
+        | undefined
+
+      if (!oldGroup) {
+        throw new Error('Original group not found')
+      }
+
+      const oldChanges = db
+        .prepare(
+          'SELECT crn, term, course_name as courseName, target_professor as targetProfessor, meet_info as meetInfo, timestamp FROM course_changes WHERE group_id = ?',
+        )
+        .all(data.oldGroupId) as Array<{
+        crn: string
+        term: string
+        courseName: string | null
+        targetProfessor: string
+        meetInfo: string
+        timestamp: number
+      }>
+
+      // Create new group
+      const result = db
+        .prepare(
+          'INSERT INTO course_change_groups (name, created_at) VALUES (?, ?)',
+        )
+        .run(data.newName, Date.now())
+
+      const newGroupId = result.lastInsertRowid as number
+
+      // Insert changes for new group
+      const insert = db.prepare(
+        'INSERT INTO course_changes (group_id, crn, term, course_name, target_professor, meet_info, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      )
+
+      for (const change of oldChanges) {
+        insert.run(
+          newGroupId,
+          change.crn,
+          change.term,
+          change.courseName || null,
+          change.targetProfessor,
+          change.meetInfo,
+          change.timestamp,
+        )
+      }
+    })
+  })
+
 export const deleteChangeGroup = createServerFn()
   .inputValidator(z.object({ groupId: z.number() }))
   .handler(async ({ data }) => {
@@ -84,6 +142,7 @@ export const deleteChangeGroup = createServerFn()
     })
   })
 
+// Rename a change group
 export const renameChangeGroup = createServerFn()
   .inputValidator(z.object({ groupId: z.number(), newName: z.string() }))
   .handler(async ({ data }) => {
@@ -203,6 +262,17 @@ export function useDeleteChangeGroup() {
 
   return useMutation({
     mutationFn: (groupId: number) => deleteChangeGroup({ data: { groupId } }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['changeGroups'] })
+    },
+  })
+}
+
+export function useDuplicateChangeGroup() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: { oldGroupId: number; newName: string }) =>
+      duplicateChangeGroup({ data }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['changeGroups'] })
     },
