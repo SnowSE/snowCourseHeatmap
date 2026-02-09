@@ -98,7 +98,7 @@ export const CourseChangesGroupSelector: FC = () => {
   }
 
   return (
-    <div className="bg-slate-900/50 space-y-3">
+    <div className=" space-y-3  px-3 py-3">
       <div className="flex items-center justify-between">
         <h3 className="font-semibold text-slate-200">Change Groups</h3>
         <button

@@ -14,6 +14,7 @@ import {
 import { withDatabase } from '@/dbUtils'
 
 export const getAllStudentSchedules = createServerFn().handler(async () => {
+  'use server'
   return withDatabase((db) => {
     const schedules = db
       .prepare(
@@ -60,6 +61,7 @@ export const getAllStudentSchedules = createServerFn().handler(async () => {
 export const getStudentSchedule = createServerFn()
   .inputValidator(z.object({ id: z.number() }))
   .handler(async ({ data: { id } }) => {
+    'use server'
     return withDatabase((db) => {
       const schedule = db
         .prepare(
@@ -115,6 +117,7 @@ export const createStudentSchedule = createServerFn()
     }),
   )
   .handler(async ({ data: { name, classes } }) => {
+    'use server'
     return withDatabase((db) => {
       return db.transaction(() => {
         const result = db
@@ -188,6 +191,7 @@ export const updateStudentSchedule = createServerFn()
     }),
   )
   .handler(async ({ data: { id, name, classes } }) => {
+    'use server'
     return withDatabase((db) => {
       return db.transaction(() => {
         db.prepare(
@@ -261,6 +265,7 @@ export const updateStudentSchedule = createServerFn()
 export const deleteStudentSchedule = createServerFn()
   .inputValidator(z.object({ id: z.number() }))
   .handler(async ({ data: { id } }) => {
+    'use server'
     return withDatabase((db) => {
       db.prepare('DELETE FROM student_schedules WHERE id = @id').run({ id })
       return { success: true }
@@ -276,6 +281,7 @@ export const removeClassFromSchedule = createServerFn()
     }),
   )
   .handler(async ({ data: { scheduleId, department, courseName } }) => {
+    'use server'
     return withDatabase((db) => {
       db.prepare(
         `

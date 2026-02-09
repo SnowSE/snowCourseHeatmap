@@ -32,6 +32,9 @@ const deserializeCourseOwner = (key: string): CourseOwner | null => {
 }
 
 const loadFromLocalStorage = (): string[] => {
+  if (typeof window === 'undefined') {
+    return []
+  }
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (stored) {
@@ -47,6 +50,9 @@ const loadFromLocalStorage = (): string[] => {
 }
 
 const saveToLocalStorage = (selectedOwners: string[]) => {
+  if (typeof window === 'undefined') {
+    return
+  }
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(selectedOwners))
   } catch (error) {

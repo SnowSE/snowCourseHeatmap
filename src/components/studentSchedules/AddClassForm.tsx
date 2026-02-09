@@ -39,10 +39,7 @@ export const AddClassForm = ({
           label="Department"
           onKeyDown={handleKeyDown}
           upperCase
-          className="w-32 rounded-lg 
-                     border border-white/20 bg-white/10 
-                     px-3 pt-5 pb-2 text-white text-sm
-                     focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+        
         />
         <AutoCompleteInput
           value={courseName}
@@ -50,10 +47,7 @@ export const AddClassForm = ({
           options={courseNumbers}
           label="Course Number"
           onKeyDown={handleKeyDown}
-          className="flex-1 rounded-lg 
-                     border border-white/20 bg-white/10 
-                     px-3 pt-5 pb-2 text-white text-sm
-                     focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+       
         />
         <button
           type="button"

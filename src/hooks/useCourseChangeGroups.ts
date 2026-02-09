@@ -21,7 +21,7 @@ export const getAllChangeGroups = createServerFn().handler(async () => {
       const changes = db
         .prepare(
           `
-          SELECT id, crn, term, target_professor as targetProfessor, meet_info as meetInfo, timestamp 
+          SELECT id, crn, term, course_name as courseName, target_professor as targetProfessor, meet_info as meetInfo, timestamp 
           FROM course_changes 
           WHERE group_id = ?
         `,
@@ -30,6 +30,7 @@ export const getAllChangeGroups = createServerFn().handler(async () => {
         id: number
         crn: string
         term: string
+        courseName: string | null
         targetProfessor: string
         meetInfo: string
         timestamp: number
@@ -43,6 +44,7 @@ export const getAllChangeGroups = createServerFn().handler(async () => {
           id: c.id,
           crn: c.crn,
           term: c.term,
+          courseName: c.courseName || undefined,
           targetProfessor: c.targetProfessor,
           meet_info: JSON.parse(c.meetInfo),
           timestamp: c.timestamp,
@@ -101,6 +103,7 @@ export const addOrUpdateChange = createServerFn()
       change: z.object({
         crn: z.string(),
         term: z.string(),
+        courseName: z.string().optional(),
         targetProfessor: z.string(),
         meet_info: z.any(),
         timestamp: z.number(),
@@ -121,11 +124,12 @@ export const addOrUpdateChange = createServerFn()
         db.prepare(
           `
           UPDATE course_changes 
-          SET term = ?, target_professor = ?, meet_info = ?, timestamp = ? 
+          SET term = ?, course_name = ?, target_professor = ?, meet_info = ?, timestamp = ? 
           WHERE id = ?
         `,
         ).run(
           data.change.term,
+          data.change.courseName || null,
           data.change.targetProfessor,
           meetInfoJson,
           data.change.timestamp,
@@ -136,13 +140,14 @@ export const addOrUpdateChange = createServerFn()
         // Insert new change
         db.prepare(
           `
-          INSERT INTO course_changes (group_id, crn, term, target_professor, meet_info, timestamp) 
-          VALUES (?, ?, ?, ?, ?, ?)
+          INSERT INTO course_changes (group_id, crn, term, course_name, target_professor, meet_info, timestamp) 
+          VALUES (?, ?, ?, ?, ?, ?, ?)
         `,
         ).run(
           data.groupId,
           data.change.crn,
           data.change.term,
+          data.change.courseName || null,
           data.change.targetProfessor,
           meetInfoJson,
           data.change.timestamp,

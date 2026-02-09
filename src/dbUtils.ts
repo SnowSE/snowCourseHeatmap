@@ -51,6 +51,7 @@ const initializeSchema = (db: Database.Database) => {
       group_id INTEGER NOT NULL,
       crn TEXT NOT NULL,
       term TEXT NOT NULL,
+      course_name TEXT,
       target_professor TEXT NOT NULL,
       meet_info TEXT NOT NULL,
       timestamp INTEGER NOT NULL,

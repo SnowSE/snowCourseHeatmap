@@ -16,14 +16,6 @@ export function useCoursesWithChanges(
     }
 
     const courseMap = new Map(courses.map((course) => [course.crn, course]))
-    console.log(
-      '[useCoursesWithChanges] Starting with courses:',
-      courseMap.size,
-    )
-    console.log(
-      '[useCoursesWithChanges] Applying changes:',
-      courseChanges.length,
-    )
 
     for (const change of courseChanges) {
       const existingCourse = courseMap.get(change.crn)
@@ -39,7 +31,6 @@ export function useCoursesWithChanges(
           meet_info: change.meet_info,
         }
 
-        // If moving to a different professor, update instructors
         if (change.targetProfessor && change.targetProfessor !== '') {
           updatedCourse.instructors = [
             {
@@ -51,6 +42,56 @@ export function useCoursesWithChanges(
         }
 
         courseMap.set(change.crn, updatedCourse)
+      } else {
+        // Create a new course for changes without an existing course
+        console.log(
+          '[useCoursesWithChanges] Creating new course for:',
+          change.crn,
+          change.courseName,
+        )
+
+        // Parse course name (e.g., "CMSC 131" -> subject_code: "CMSC", course_number: "131")
+        const nameParts = (change.courseName || 'NEW 000').split(' ')
+        const subject_code = nameParts[0] || 'NEW'
+        const course_number = nameParts[1] || '000'
+
+        const newCourse: Course = {
+          name: change.courseName || `New Course ${change.crn}`,
+          term: courses[0]?.term || {
+            name: change.term,
+            start_at: '',
+            end_at: '',
+            code: change.term,
+            is_registered: null,
+          },
+          subject_code,
+          course_number,
+          section_number: '001',
+          crn: change.crn,
+          credit_hours: 3,
+          start_date: courses[0]?.start_date || '',
+          end_date: courses[0]?.end_date || '',
+          campus: 'Main Campus',
+          part_of_term: 'Full Term',
+          grade_mode: 'Regular',
+          meet_info: change.meet_info,
+          instructors: [
+            {
+              name: change.targetProfessor,
+              email: null,
+              primary_instructor: true,
+            },
+          ],
+          enrollment: {
+            max: 0,
+            enrolled: 0,
+            waitlist: 0,
+            waitlist_capacity: 0,
+          },
+          requisite: null,
+        }
+
+        courseMap.set(change.crn, newCourse)
       }
     }
 

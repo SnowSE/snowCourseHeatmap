@@ -7,6 +7,7 @@ import { useChangeGroups, type CourseChangeGroup } from '@/hooks/useChangeHooks'
 export type CourseChange = {
   crn: string
   term: string
+  courseName?: string
   targetProfessor: string
   meet_info: z.infer<typeof MeetInfoSchema>[]
   timestamp: number

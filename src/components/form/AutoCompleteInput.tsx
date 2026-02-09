@@ -1,30 +1,39 @@
 import { useState, useRef } from 'react'
 import { TextInput } from './TextInput'
 
+const fuzzyMatch = (searchTerm: string, target: string): boolean => {
+  if (!searchTerm) return true
+
+  const search = searchTerm.toLowerCase().replace(/\s+/g, '')
+  const text = target.toLowerCase().replace(/\s+/g, '')
+
+  let searchIndex = 0
+
+  for (let i = 0; i < text.length && searchIndex < search.length; i++) {
+    if (text[i] === search[searchIndex]) {
+      searchIndex++
+    }
+  }
+
+  return searchIndex === search.length
+}
+
 export const AutoCompleteInput: React.FC<{
   value: string
   onChange: (value: string) => void
   options: Array<{ value: string; label: string }>
-  label?: string
+  label: string
   onKeyDown?: (e: React.KeyboardEvent) => void
-  className?: string
   upperCase?: boolean
-}> = ({
-  value,
-  onChange,
-  options,
-  label,
-  onKeyDown,
-  className = '',
-  upperCase = false,
-}) => {
+}> = ({ value, onChange, options, label, onKeyDown, upperCase = false }) => {
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState(-1)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const filteredOptions = value
-    ? options.filter((option) =>
-        option.value.toLowerCase().startsWith(value.toLowerCase()),
+    ? options.filter(
+        (option) =>
+          fuzzyMatch(value, option.value) || fuzzyMatch(value, option.label),
       )
     : []
 
@@ -78,7 +87,6 @@ export const AutoCompleteInput: React.FC<{
         onFocus={() => setShowSuggestions(true)}
         onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
         label={label}
-        className={className}
         upperCase={upperCase}
       />
       {showSuggestions && filteredOptions.length > 0 && (

@@ -4,30 +4,35 @@ import { useCourseChanges } from '../contexts/CourseChangesContext'
 import { formatDays, formatTime12Hour } from './CourseChangesList'
 
 export const VisualizeChanges: FC<{
-  original: ReturnType<typeof useCoursesInCurrentTerm>['data'][number]
+  original:
+    | ReturnType<typeof useCoursesInCurrentTerm>['data'][number]
+    | undefined
   change: ReturnType<typeof useCourseChanges>['courseChanges'][number]
 }> = ({ original, change }) => {
+  // If no original, show everything as new (with "None" as old values)
+  const originalProfessor = original
+    ? original.instructors.map((i) => i.name).join(', ')
+    : 'None'
+  const professorChanged = originalProfessor !== change.targetProfessor
+
   return (
     <div className="grid grid-cols-[1fr_auto_1fr] gap-3 text-sm items-center">
       <div className="space-y-2">
-        {original.instructors.map((i) => i.name).join(', ') !==
-          change.targetProfessor && (
-          <div className="text-slate-200/80 truncate">
-            {original.instructors.map((i) => i.name).join(', ')}
-          </div>
+        {professorChanged && (
+          <div className="text-slate-200/80 truncate">{originalProfessor}</div>
         )}
 
-        {original.meet_info.map((originalMeet, meetIdx) => {
-          const newMeet = change.meet_info[meetIdx]
+        {change.meet_info.map((newMeet, meetIdx) => {
+          const originalMeet = original?.meet_info[meetIdx]
           const timesChanged =
-            newMeet &&
-            (originalMeet.start_time !== newMeet.start_time ||
-              originalMeet.end_time !== newMeet.end_time ||
-              formatDays(originalMeet.days) !== formatDays(newMeet.days))
+            !originalMeet ||
+            originalMeet.start_time !== newMeet.start_time ||
+            originalMeet.end_time !== newMeet.end_time ||
+            formatDays(originalMeet.days) !== formatDays(newMeet.days)
           const roomChanged =
-            newMeet &&
-            (originalMeet.building !== newMeet.building ||
-              originalMeet.room !== newMeet.room)
+            !originalMeet ||
+            originalMeet.building !== newMeet.building ||
+            originalMeet.room !== newMeet.room
 
           if (!timesChanged && !roomChanged) return null
 
@@ -35,14 +40,22 @@ export const VisualizeChanges: FC<{
             <div key={meetIdx} className="text-slate-200/80">
               {timesChanged && (
                 <div className="font-mono text-xs">
-                  {formatDays(originalMeet.days)}{' '}
-                  {formatTime12Hour(originalMeet.start_time)}-
-                  {formatTime12Hour(originalMeet.end_time)}
+                  {originalMeet ? (
+                    <>
+                      {formatDays(originalMeet.days)}{' '}
+                      {formatTime12Hour(originalMeet.start_time)}-
+                      {formatTime12Hour(originalMeet.end_time)}
+                    </>
+                  ) : (
+                    'None'
+                  )}
                 </div>
               )}
-              {roomChanged && originalMeet.building && (
+              {roomChanged && (
                 <div className="text-xs text-slate-400">
-                  {originalMeet.building} {originalMeet.room}
+                  {originalMeet?.building && originalMeet?.room
+                    ? `${originalMeet.building} ${originalMeet.room}`
+                    : 'None'}
                 </div>
               )}
             </div>
@@ -55,24 +68,23 @@ export const VisualizeChanges: FC<{
       </div>
 
       <div className="space-y-2">
-        {original.instructors.map((i) => i.name).join(', ') !==
-          change.targetProfessor && (
+        {professorChanged && (
           <div className="text-emerald-200 truncate">
             {change.targetProfessor || 'N/A'}
           </div>
         )}
 
         {change.meet_info.map((newMeet, meetIdx) => {
-          const originalMeet = original.meet_info[meetIdx]
+          const originalMeet = original?.meet_info[meetIdx]
           const timesChanged =
-            originalMeet &&
-            (originalMeet.start_time !== newMeet.start_time ||
-              originalMeet.end_time !== newMeet.end_time ||
-              formatDays(originalMeet.days) !== formatDays(newMeet.days))
+            !originalMeet ||
+            originalMeet.start_time !== newMeet.start_time ||
+            originalMeet.end_time !== newMeet.end_time ||
+            formatDays(originalMeet.days) !== formatDays(newMeet.days)
           const roomChanged =
-            originalMeet &&
-            (originalMeet.building !== newMeet.building ||
-              originalMeet.room !== newMeet.room)
+            !originalMeet ||
+            originalMeet.building !== newMeet.building ||
+            originalMeet.room !== newMeet.room
 
           if (!timesChanged && !roomChanged) return null
 
@@ -85,9 +97,11 @@ export const VisualizeChanges: FC<{
                   {formatTime12Hour(newMeet.end_time)}
                 </div>
               )}
-              {roomChanged && newMeet.building && (
+              {roomChanged && (
                 <div className="text-xs text-emerald-200">
-                  {newMeet.building} {newMeet.room}
+                  {newMeet.building && newMeet.room
+                    ? `${newMeet.building} ${newMeet.room}`
+                    : 'No room'}
                 </div>
               )}
             </div>
