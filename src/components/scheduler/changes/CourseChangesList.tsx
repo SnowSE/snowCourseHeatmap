@@ -8,6 +8,7 @@ import { VisualizeChanges } from './VisualizeChanges'
 import { CourseChangesGroupSelector } from './CourseChangesGroupSelector'
 import { useRemoveChange, useClearChanges } from '@/hooks/useCourseChangeGroups'
 import { AddClassChangeForm } from './AddClassChangeForm'
+import { Modal } from '@/components/Modal'
 
 export const CourseChangesList: FC = () => {
   const { courseChanges, activeGroupName, activeGroupId } = useCourseChanges()
@@ -17,6 +18,7 @@ export const CourseChangesList: FC = () => {
   const { data: studentSchedules = [] } = useStudentSchedules()
   const { getConflictsForChange } = useConflictDetection()
   const [isAddFormOpen, setIsAddFormOpen] = useState(false)
+  const [isClearModalOpen, setIsClearModalOpen] = useState(false)
 
   const handleRemoveChange = (crn: string) => {
     if (activeGroupId) {
@@ -27,6 +29,7 @@ export const CourseChangesList: FC = () => {
   const handleClearChanges = () => {
     if (activeGroupId) {
       clearChangesMutation.mutate(activeGroupId)
+      setIsClearModalOpen(false)
     }
   }
   const changesWithOriginal = useMemo(() => {
@@ -50,7 +53,7 @@ export const CourseChangesList: FC = () => {
               onClick={() => setIsAddFormOpen(true)}
               className="w-full px-4 py-2 rounded-lg bg-blue-950 border border-blue-700/50 text-white hover:bg-blue-900 transition-colors font-medium"
             >
-              Add Course Change
+              Add New Change
             </button>
           </div>
         )}
@@ -66,17 +69,6 @@ export const CourseChangesList: FC = () => {
           </div>
         ) : (
           <>
-            <div className="flex items-center justify-between px-3 ">
-              <h3 className="">Course Changes ({courseChanges.length})</h3>
-              {courseChanges.length > 0 && (
-                <button
-                  onClick={handleClearChanges}
-                  className="px-3 py-1 text-sm bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded transition-colors"
-                >
-                  Clear Group
-                </button>
-              )}
-            </div>
             <div className="space-y-3  px-3">
               {changesWithOriginal.map(
                 ({ change, original, conflicts }, idx) => (
@@ -129,9 +121,46 @@ export const CourseChangesList: FC = () => {
                 ),
               )}
             </div>
+            <div className=" p-3 ">
+              {courseChanges.length > 0 && (
+                <button
+                  onClick={() => setIsClearModalOpen(true)}
+                  className="px-3 py-1 text-sm bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded transition-colors w-full"
+                >
+                  Clear Group
+                </button>
+              )}
+            </div>
           </>
         )}
       </div>
+
+      <Modal
+        isOpen={isClearModalOpen}
+        onClose={() => setIsClearModalOpen(false)}
+        title="Clear Group"
+      >
+        <div className="p-6 space-y-4">
+          <p className="text-slate-300">
+            Are you sure you want to clear all course changes from "
+            {activeGroupName}"? This action cannot be undone.
+          </p>
+          <div className="flex gap-3 justify-end">
+            <button
+              onClick={() => setIsClearModalOpen(false)}
+              className="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-100 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleClearChanges}
+              className="px-4 py-2 rounded-lg bg-red-700/50 hover:bg-red-900 text-red-100 transition-colors"
+            >
+              Clear All Changes
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }
