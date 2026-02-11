@@ -1,14 +1,46 @@
+import { useEffect, useRef } from 'react'
+
+export const getShortcutString = (key: string): string => {
+  const isMac =
+    typeof navigator !== 'undefined' &&
+    /Mac|iPhone|iPad|iPod/.test(navigator.platform)
+  const modifier = isMac ? '⌘' : 'Ctrl'
+  return `${modifier}+${key.toUpperCase()}`
+}
+
 export const TextInput: React.FC<
   Omit<React.InputHTMLAttributes<HTMLInputElement>, 'className'> & {
     label: string
     upperCase?: boolean
     inputRef?: React.RefObject<HTMLInputElement | null>
+    shortcutKey?: string
   }
-> = ({ label, upperCase = false, inputRef, ...props }) => {
+> = ({ label, upperCase = false, inputRef, shortcutKey, ...props }) => {
+  const internalRef = useRef<HTMLInputElement>(null)
+  const effectiveRef = inputRef || internalRef
+
+  useEffect(() => {
+    if (!shortcutKey) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        (e.ctrlKey || e.metaKey) &&
+        e.key.toLowerCase() === shortcutKey.toLowerCase()
+      ) {
+        e.preventDefault()
+        effectiveRef.current?.focus()
+        effectiveRef.current?.select()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [shortcutKey, effectiveRef])
+
   return (
     <div className="relative w-full">
       <input
-        ref={inputRef}
+        ref={effectiveRef}
         type="text"
         {...props}
         className={`peer w-full rounded-lg pt-4 px-4

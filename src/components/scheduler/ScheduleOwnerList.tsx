@@ -3,12 +3,13 @@ import { useCourseOwners } from '@/components/scheduler/week/useCourseOwners'
 import { useStudentSchedules } from '@/hooks/useStudentSchedules'
 import { useState, useEffect, useDeferredValue, useRef, FC } from 'react'
 import { useCourseOwner } from '@/components/scheduler/contexts/CourseOwnerContext'
-
+import { useScrollToOwner } from '@/hooks/useScrollToOwner'
 
 export const ScheduleOwnerList: FC<{
   filter: string
 }> = ({ filter }) => {
   const { selectedCourseOwners, toggleCourseOwner } = useCourseOwner()
+  const scrollToOwner = useScrollToOwner()
   const { data: courses = [] } = useCoursesInCurrentTerm()
   const { data: studentSchedules = [] } = useStudentSchedules()
   const [visibleCount, setVisibleCount] = useState(50)
@@ -22,7 +23,7 @@ export const ScheduleOwnerList: FC<{
   )
 
   useEffect(() => {
-    setVisibleCount(50) // Reset visible count when filter changes
+    setVisibleCount(50)
   }, [deferredFilter])
 
   useEffect(() => {
@@ -59,7 +60,13 @@ export const ScheduleOwnerList: FC<{
           return (
             <div
               key={key}
-              onClick={() => toggleCourseOwner(owner)}
+              onClick={() => {
+                if (isSelected) {
+                  toggleCourseOwner(owner)
+                } else {
+                  scrollToOwner(owner)
+                }
+              }}
               className={`flex justify-between items-center p-2 rounded cursor-pointer transition-all ${
                 isSelected
                   ? 'bg-blue-900/40 ring-1 ring-slate-600/50 hover:bg-blue-900'
