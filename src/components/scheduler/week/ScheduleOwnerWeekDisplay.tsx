@@ -5,11 +5,13 @@ import { ScheduleWeekDisplay } from './ScheduleWeekDisplay'
 import {
   CourseOwner,
   useCourseOwner,
+  serializeCourseOwner,
 } from '@/components/scheduler/contexts/CourseOwnerContext'
 import { useCourseChanges } from '@/components/scheduler/contexts/CourseChangesContext'
 import { useCoursesWithChanges } from '@/components/scheduler/week/useCoursesWithChanges'
 import { useOwnerCourses } from '@/components/scheduler/week/useOwnerCourses'
 import { useAddOrUpdateChange } from '@/hooks/useCourseChangeGroups'
+import { useIsHashTarget } from '@/hooks/useIsHashTarget'
 
 export const ScheduleOwnerWeekDisplay: FC<{
   owner: CourseOwner
@@ -20,6 +22,7 @@ export const ScheduleOwnerWeekDisplay: FC<{
     handleDragStart,
     handleDrop,
     ownerNameBeingDragged,
+    setSelectedHashTarget,
   } = useCourseOwner()
   const { data: courses = [] } = useCoursesInCurrentTerm()
   const { data: studentSchedules = [] } = useStudentSchedules()
@@ -30,16 +33,8 @@ export const ScheduleOwnerWeekDisplay: FC<{
   const [isHovering, setIsHovering] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Serialize owner to get key for drag and drop
-  const serializeOwner = (owner: CourseOwner): string => {
-    if (owner.professorName) return `professor:${owner.professorName}`
-    if (owner.roomName) return `room:${owner.roomName}`
-    if (owner.studentScheduleName)
-      return `studentSchedule:${owner.studentScheduleName}`
-    return ''
-  }
-
-  const ownerKey = serializeOwner(owner)
+  const ownerKey = serializeCourseOwner(owner)
+  const isHashTarget = useIsHashTarget(ownerKey)
 
   const coursesWithChanges = useCoursesWithChanges(courses, courseChanges)
 
@@ -63,6 +58,11 @@ export const ScheduleOwnerWeekDisplay: FC<{
 
   const showDropIndicator =
     ownerNameBeingDragged && ownerNameBeingDragged !== ownerKey && isHovering
+
+  const handleHeaderClick = () => {
+    history.replaceState(null, '', `#${ownerKey}`)
+    setSelectedHashTarget(ownerKey)
+  }
 
   const handleDeleteCourse = async (crn: string, term: string) => {
     if (!activeGroupId) {
@@ -89,10 +89,12 @@ export const ScheduleOwnerWeekDisplay: FC<{
   return (
     <div
       ref={containerRef}
-      className={`flex flex-col   border border-slate-600/50 py-3 pe-3 relative transition-all ${
+      className={`flex flex-col py-3 pe-3 relative transition-all  bg-slate-950/30 ${
         showDropIndicator
-          ? 'border-l-4 border-l-blue-500 bg-slate-950 rounded-r-lg'
-          : 'bg-slate-950/30 rounded-lg'
+          ? 'border-l-4 border-l-blue-500 bg-slate-950 rounded-r-lg border border-slate-600/50'
+          : isHashTarget
+            ? 'border-2 border-blue-600 rounded-lg'
+            : 'border border-slate-600/50 rounded-lg'
       }`}
       onDragOver={(e) => {
         e.preventDefault() // Allow drop
@@ -107,10 +109,14 @@ export const ScheduleOwnerWeekDisplay: FC<{
         handleDrop(ownerKey)
       }}
     >
-      <div className="flex items-center justify-between px-2 mb-1">
+      <div
+        className="flex items-center justify-between px-2 mb-1"
+        id={ownerKey}
+      >
         <h2
           className="text-center font-bold flex-1 cursor-move"
           draggable
+          onClick={handleHeaderClick}
           onDragStart={(e) => {
             if (containerRef.current) {
               const width = containerRef.current.offsetWidth

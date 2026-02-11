@@ -5,6 +5,7 @@ import { useCourseChanges } from '../../../contexts/CourseChangesContext'
 import { AutoCompleteInput } from '@/components/form/AutoCompleteInput'
 import { useCoursesInCurrentTerm } from '@/components/studentSchedules/useCourses'
 import { MeetInfoSchema } from '@/schemas/courses'
+import { useScrollToOwner } from '@/hooks/useScrollToOwner'
 
 export const RoomContextMenu: FC<{
   rooms: string[]
@@ -30,6 +31,7 @@ export const RoomContextMenu: FC<{
   const changeMutation = useAddOrUpdateChange()
   const { activeGroupId } = useCourseChanges()
   const { data: courses = [] } = useCoursesInCurrentTerm()
+  const scrollToOwner = useScrollToOwner()
 
   const roomOptions = useMemo(() => {
     const roomsSet = new Set<string>()
@@ -81,6 +83,12 @@ export const RoomContextMenu: FC<{
     setIsEditing(false)
   }
 
+  const handleRoomClick = (room: string) => {
+    scrollToOwner({ roomName: room })
+    onSelectRoom(room)
+    onClose()
+  }
+
   if (rooms.length === 0 && !isEditing) {
     return null
   }
@@ -108,10 +116,7 @@ export const RoomContextMenu: FC<{
               {rooms.map((room, idx) => (
                 <button
                   key={idx}
-                  onClick={() => {
-                    onSelectRoom(room)
-                    onClose()
-                  }}
+                  onClick={() => handleRoomClick(room)}
                   className="w-full text-left px-3 py-2 text-sm bg-slate-700 hover:bg-slate-600 rounded transition-colors text-slate-200"
                 >
                   {room}

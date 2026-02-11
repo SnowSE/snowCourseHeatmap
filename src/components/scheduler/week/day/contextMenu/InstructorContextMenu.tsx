@@ -5,6 +5,7 @@ import { useCourseChanges } from '../../../contexts/CourseChangesContext'
 import { AutoCompleteInput } from '@/components/form/AutoCompleteInput'
 import { useCoursesInCurrentTerm } from '@/components/studentSchedules/useCourses'
 import { MeetInfoSchema } from '@/schemas/courses'
+import { useScrollToOwner } from '@/hooks/useScrollToOwner'
 
 export const InstructorContextMenu: FC<{
   instructors: string[]
@@ -28,6 +29,7 @@ export const InstructorContextMenu: FC<{
   const changeMutation = useAddOrUpdateChange()
   const { activeGroupId } = useCourseChanges()
   const { data: courses = [] } = useCoursesInCurrentTerm()
+  const scrollToOwner = useScrollToOwner()
 
   const professorOptions = useMemo(() => {
     const professorsSet = new Set<string>()
@@ -66,6 +68,12 @@ export const InstructorContextMenu: FC<{
     setIsEditing(false)
   }
 
+  const handleProfessorClick = (professor: string) => {
+    scrollToOwner({ professorName: professor })
+    onSelectProfessor(professor)
+    onClose()
+  }
+
   if (instructors.length === 0 && !isEditing) {
     return null
   }
@@ -90,10 +98,7 @@ export const InstructorContextMenu: FC<{
         <>
           {instructors.length > 0 ? (
             <button
-              onClick={() => {
-                onSelectProfessor(instructors[0])
-                onClose()
-              }}
+              onClick={() => handleProfessorClick(instructors[0])}
               className="w-full text-left px-3 py-2 text-sm bg-slate-700 hover:bg-slate-600 rounded transition-colors text-slate-200"
             >
               {instructors[0]}

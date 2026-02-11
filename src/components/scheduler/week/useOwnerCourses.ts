@@ -14,21 +14,7 @@ export function useOwnerCourses(
       const filtered = courses.filter((course) =>
         course.instructors.some((inst) => inst.name === owner.professorName),
       )
-      console.log(
-        `[useOwnerCourses] Owner: ${owner.professorName}, Courses after filter:`,
-        filtered.length,
-        'out of',
-        courses.length,
-      )
-      console.log(
-        '[useOwnerCourses] Filtered courses:',
-        filtered
-          .map(
-            (c) =>
-              `${c.subject_code} ${c.course_number} (${c.instructors.map((i) => i.name).join(', ')})`,
-          )
-          .join(', '),
-      )
+
       return filtered
     } else if (owner.roomName) {
       const filtered = courses.filter((course) =>
@@ -39,10 +25,7 @@ export function useOwnerCourses(
           return roomName === owner.roomName
         }),
       )
-      console.log(
-        `[useOwnerCourses] Owner: ${owner.roomName}, Courses after filter:`,
-        filtered.length,
-      )
+
       return filtered
     } else if (owner.studentScheduleName) {
       // Find the student schedule
@@ -55,10 +38,7 @@ export function useOwnerCourses(
 
       // Match courses based on department and course number
       const filtered = useStudentScheduleClassList(schedule, courses)
-      console.log(
-        `[useOwnerCourses] Owner: ${owner.studentScheduleName}, Courses after filter:`,
-        filtered.length,
-      )
+
       return filtered
     }
     return []

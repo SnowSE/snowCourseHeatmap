@@ -14,7 +14,7 @@ export interface CourseOwner {
 
 const STORAGE_KEY = 'selectedCourseOwners'
 
-const serializeCourseOwner = (owner: CourseOwner): string => {
+export const serializeCourseOwner = (owner: CourseOwner): string => {
   if (owner.professorName) return `professor:${owner.professorName}`
   if (owner.roomName) return `room:${owner.roomName}`
   if (owner.studentScheduleName)
@@ -67,7 +67,9 @@ const CourseOwnerContext = createContext<
   | {
       selectedCourseOwners: string[]
       ownerNameBeingDragged: string | null
-      addCourseOwner: (owner: CourseOwner) => void
+      selectedHashTarget: string | null
+      setSelectedHashTarget: (target: string | null) => void
+      addCourseOwner: (owner: CourseOwner, onAdded?: () => void) => void
       removeCourseOwner: (owner: CourseOwner) => void
       toggleCourseOwner: (owner: CourseOwner) => void
       clearAllCourseOwners: () => void
@@ -85,17 +87,28 @@ export function CourseOwnerProvider({ children }: { children: ReactNode }) {
   const [ownerNameBeingDragged, setOwnerNameBeingDragged] = useState<
     string | null
   >(null)
+  const [selectedHashTarget, setSelectedHashTarget] = useState<string | null>(
+    null,
+  )
 
   useEffect(() => {
     saveToLocalStorage(selectedCourseOwners)
   }, [selectedCourseOwners])
 
-  const addCourseOwner = (owner: CourseOwner) => {
+  const addCourseOwner = (owner: CourseOwner, onAdded?: () => void) => {
     const key = serializeCourseOwner(owner)
     setSelectedCourseOwners((prev) => {
       // Check for duplicates
       if (prev.includes(key)) {
+        // Already exists, call callback immediately
+        if (onAdded) {
+          setTimeout(onAdded, 0)
+        }
         return prev
+      }
+      // Will be added, call callback after render
+      if (onAdded) {
+        setTimeout(onAdded, 100)
       }
       return [...prev, key]
     })
@@ -156,6 +169,8 @@ export function CourseOwnerProvider({ children }: { children: ReactNode }) {
       value={{
         selectedCourseOwners,
         ownerNameBeingDragged,
+        selectedHashTarget,
+        setSelectedHashTarget,
         addCourseOwner,
         removeCourseOwner,
         toggleCourseOwner,

@@ -8,10 +8,6 @@ export function useCoursesWithChanges(
 ): Course[] {
   return useMemo(() => {
     if (!courseChanges || courseChanges.length === 0) {
-      console.log(
-        '[useCoursesWithChanges] No changes, returning original courses:',
-        courses.length,
-      )
       return courses
     }
 
@@ -27,16 +23,8 @@ export function useCoursesWithChanges(
 
       if (existingCourse) {
         if (isDeletion) {
-          console.log('[useCoursesWithChanges] Deleting course:', change.crn)
-          // Remove the course from the map for deletion changes
           courseMap.delete(change.crn)
         } else {
-          console.log(
-            '[useCoursesWithChanges] Applying change to:',
-            change.crn,
-            'Target prof:',
-            change.targetProfessor,
-          )
           const updatedCourse = {
             ...existingCourse,
             meet_info: change.meet_info,
@@ -55,14 +43,6 @@ export function useCoursesWithChanges(
           courseMap.set(change.crn, updatedCourse)
         }
       } else {
-        // Create a new course for changes without an existing course
-        console.log(
-          '[useCoursesWithChanges] Creating new course for:',
-          change.crn,
-          change.courseName,
-        )
-
-        // Parse course name (e.g., "CMSC 131" -> subject_code: "CMSC", course_number: "131")
         const nameParts = (change.courseName || 'NEW 000').split(' ')
         const subject_code = nameParts[0] || 'NEW'
         const course_number = nameParts[1] || '000'
@@ -108,10 +88,6 @@ export function useCoursesWithChanges(
     }
 
     const result = Array.from(courseMap.values())
-    console.log(
-      '[useCoursesWithChanges] Final courses after changes:',
-      result.length,
-    )
     return result
   }, [courses, courseChanges])
 }
