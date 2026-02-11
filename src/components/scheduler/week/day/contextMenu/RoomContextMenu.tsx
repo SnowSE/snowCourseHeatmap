@@ -51,6 +51,17 @@ export const RoomContextMenu: FC<{
       return
     }
 
+    // Parse the edited room to extract building and room
+    const [building, ...roomParts] = editedRoom.split(' ')
+    const room = roomParts.join(' ')
+
+    // Update meet_info with the new room
+    const updatedMeetInfo = meetInfo.map((meet) => ({
+      ...meet,
+      building: building || null,
+      room: room || null,
+    }))
+
     changeMutation.mutate({
       groupId: activeGroupId,
       change: {
@@ -59,7 +70,7 @@ export const RoomContextMenu: FC<{
         courseName,
         targetProfessor: instructors[0] || '',
         timestamp: Date.now(),
-        meet_info: meetInfo,
+        meet_info: updatedMeetInfo,
       },
     })
     setIsEditing(false)

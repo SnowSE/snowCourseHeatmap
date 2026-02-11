@@ -35,8 +35,25 @@ export const ScheduleWeekDisplay: FC<{
 
   const meetingTimesByDay = useMeetingTimesByDay(days, regularCourses)
 
-  const start = '07:00'
-  const end = '17:00'
+  const { start, end } = useMemo(() => {
+    let earliestStart = '08:00'
+    let latestEnd = '17:00'
+
+    regularCourses.forEach((course) => {
+      course.meet_info.forEach((meet) => {
+        if (meet.start_time && meet.end_time) {
+          if (meet.start_time < earliestStart) {
+            earliestStart = meet.start_time
+          }
+          if (meet.end_time > latestEnd) {
+            latestEnd = meet.end_time
+          }
+        }
+      })
+    })
+
+    return { start: earliestStart, end: latestEnd }
+  }, [regularCourses])
 
   return (
     <div className="flex gap-3 h-125">

@@ -201,14 +201,24 @@ const calculateEndTime = (
   const newStart = time.split(':').map(Number)
   let durationMinutes: number
 
-  // If we have credit hours and new days, calculate duration based on meetings per week
-  if (creditHours && newDays && newDays.length > 0) {
+  // Get the original duration
+  const originalDuration = getOriginalDuration(originalMeet)
+
+  // Only recalculate duration if the number of meeting days has changed
+  if (
+    creditHours &&
+    newDays &&
+    originalMeet?.days &&
+    newDays.length !== originalMeet.days.length
+  ) {
     const numberOfMeetings = newDays.length
-    // Each credit hour = 60 minutes per week, divided by number of meetings
-    durationMinutes = Math.round((creditHours / numberOfMeetings) * 60)
+    // Each credit hour = 50 minutes per week (standard contact time), divided by number of meetings
+    // e.g., 3 credits meeting MWF (3 days) = 150/3 = 50 min each
+    // e.g., 3 credits meeting TTh (2 days) = 150/2 = 75 min each
+    durationMinutes = Math.round((creditHours * 50) / numberOfMeetings)
   } else {
-    // Use original duration if credit hours not available
-    durationMinutes = getOriginalDuration(originalMeet)
+    // Preserve original duration if number of meetings hasn't changed
+    durationMinutes = originalDuration
   }
 
   const newEndMinutes = newStart[0] * 60 + newStart[1] + durationMinutes
@@ -229,7 +239,6 @@ const getOriginalDuration = (
       (originalStart[0] * 60 + originalStart[1])
     )
   }
-  // Default to 50 minutes if no original duration
   return 50
 }
 
@@ -245,8 +254,6 @@ const buildNewMeetInfo = (
     days: newDays,
     start_time: startTime,
     end_time: endTime,
-    // If dropped on student schedule, preserve original room
-    // Otherwise use target room if provided, or preserve original building/room
     building: isStudentSchedule
       ? (originalMeet?.building ?? null)
       : targetRoom
