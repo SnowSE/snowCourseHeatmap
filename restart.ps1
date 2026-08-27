@@ -1,0 +1,14 @@
+#!/opt/microsoft/powershell/7/pwsh
+
+Write-Host "Waiting for Docker..."
+while ($true) {
+    $result = docker info 2>&1
+    if ($LASTEXITCODE -eq 0) { break }
+    Write-Host "Docker not ready, retrying in 5s..."
+    Start-Sleep -Seconds 5
+}
+
+set-location /home/jonathan/snowCourseHeatmap
+
+docker compose down
+docker compose up -d --remove-orphans

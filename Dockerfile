@@ -4,9 +4,13 @@ WORKDIR /app
 
 RUN apk add --no-cache python3 make g++ gcc musl-dev
 
-RUN npm install -g pnpm@latest
+# Pinned, not @latest: pnpm 11 ignores this repo's pnpm-workspace.yaml settings
+# (onlyBuiltDependencies) and the lockfile is v9. 10.33.4 matches local dev.
+RUN npm install -g pnpm@10.33.4
 
-COPY package.json pnpm-lock.yaml ./
+# pnpm-workspace.yaml carries onlyBuiltDependencies (better-sqlite3); without it
+# pnpm 10 refuses the install with ERR_PNPM_IGNORED_BUILDS.
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
 RUN pnpm install --frozen-lockfile
 
@@ -16,23 +20,19 @@ COPY . .
 
 RUN pnpm run build
 
+# nitro leaves better-sqlite3 external, so the native module has to ship next to
+# the server bundle. Built here with npm into a flat, real directory: pnpm's own
+# node_modules entries are symlinks into its virtual store and don't survive a
+# COPY --from into another stage.
+RUN mkdir /native && cd /native && npm install better-sqlite3@12.6.2 --build-from-source
+
 FROM node:22-alpine
-
-WORKDIR /app
-
-RUN apk add --no-cache python3 make g++ gcc musl-dev libstdc++
-
-RUN npm install -g pnpm@latest
-
-RUN mkdir -p .output/server/node_modules
-
-WORKDIR /app/.output/server
-RUN npm install better-sqlite3@12.6.2 --build-from-source
 
 WORKDIR /app
 
 COPY --from=builder /app/.output ./.output
 COPY --from=builder /app/package.json ./
+COPY --from=builder /native/node_modules ./.output/server/node_modules
 
 EXPOSE 3000
 
