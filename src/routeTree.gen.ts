@@ -12,6 +12,10 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as StudentScheduleRouteImport } from './routes/studentSchedule'
 import { Route as MakeScheduleRouteImport } from './routes/makeSchedule'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthLogoutRouteImport } from './routes/auth.logout'
+import { Route as AuthLoginRouteImport } from './routes/auth.login'
+import { Route as AuthDeniedRouteImport } from './routes/auth.denied'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api.trpc.$'
 
 const StudentScheduleRoute = StudentScheduleRouteImport.update({
@@ -29,6 +33,26 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthLogoutRoute = AuthLogoutRouteImport.update({
+  id: '/auth/logout',
+  path: '/auth/logout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthLoginRoute = AuthLoginRouteImport.update({
+  id: '/auth/login',
+  path: '/auth/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthDeniedRoute = AuthDeniedRouteImport.update({
+  id: '/auth/denied',
+  path: '/auth/denied',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiTrpcSplatRoute = ApiTrpcSplatRouteImport.update({
   id: '/api/trpc/$',
   path: '/api/trpc/$',
@@ -39,12 +63,20 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/makeSchedule': typeof MakeScheduleRoute
   '/studentSchedule': typeof StudentScheduleRoute
+  '/auth/callback': typeof AuthCallbackRoute
+  '/auth/denied': typeof AuthDeniedRoute
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/logout': typeof AuthLogoutRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/makeSchedule': typeof MakeScheduleRoute
   '/studentSchedule': typeof StudentScheduleRoute
+  '/auth/callback': typeof AuthCallbackRoute
+  '/auth/denied': typeof AuthDeniedRoute
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/logout': typeof AuthLogoutRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
 }
 export interface FileRoutesById {
@@ -52,20 +84,53 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/makeSchedule': typeof MakeScheduleRoute
   '/studentSchedule': typeof StudentScheduleRoute
+  '/auth/callback': typeof AuthCallbackRoute
+  '/auth/denied': typeof AuthDeniedRoute
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/logout': typeof AuthLogoutRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/makeSchedule' | '/studentSchedule' | '/api/trpc/$'
+  fullPaths:
+    | '/'
+    | '/makeSchedule'
+    | '/studentSchedule'
+    | '/auth/callback'
+    | '/auth/denied'
+    | '/auth/login'
+    | '/auth/logout'
+    | '/api/trpc/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/makeSchedule' | '/studentSchedule' | '/api/trpc/$'
-  id: '__root__' | '/' | '/makeSchedule' | '/studentSchedule' | '/api/trpc/$'
+  to:
+    | '/'
+    | '/makeSchedule'
+    | '/studentSchedule'
+    | '/auth/callback'
+    | '/auth/denied'
+    | '/auth/login'
+    | '/auth/logout'
+    | '/api/trpc/$'
+  id:
+    | '__root__'
+    | '/'
+    | '/makeSchedule'
+    | '/studentSchedule'
+    | '/auth/callback'
+    | '/auth/denied'
+    | '/auth/login'
+    | '/auth/logout'
+    | '/api/trpc/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   MakeScheduleRoute: typeof MakeScheduleRoute
   StudentScheduleRoute: typeof StudentScheduleRoute
+  AuthCallbackRoute: typeof AuthCallbackRoute
+  AuthDeniedRoute: typeof AuthDeniedRoute
+  AuthLoginRoute: typeof AuthLoginRoute
+  AuthLogoutRoute: typeof AuthLogoutRoute
   ApiTrpcSplatRoute: typeof ApiTrpcSplatRoute
 }
 
@@ -92,6 +157,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/logout': {
+      id: '/auth/logout'
+      path: '/auth/logout'
+      fullPath: '/auth/logout'
+      preLoaderRoute: typeof AuthLogoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/login': {
+      id: '/auth/login'
+      path: '/auth/login'
+      fullPath: '/auth/login'
+      preLoaderRoute: typeof AuthLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/denied': {
+      id: '/auth/denied'
+      path: '/auth/denied'
+      fullPath: '/auth/denied'
+      preLoaderRoute: typeof AuthDeniedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/trpc/$': {
       id: '/api/trpc/$'
       path: '/api/trpc/$'
@@ -106,6 +199,10 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   MakeScheduleRoute: MakeScheduleRoute,
   StudentScheduleRoute: StudentScheduleRoute,
+  AuthCallbackRoute: AuthCallbackRoute,
+  AuthDeniedRoute: AuthDeniedRoute,
+  AuthLoginRoute: AuthLoginRoute,
+  AuthLogoutRoute: AuthLogoutRoute,
   ApiTrpcSplatRoute: ApiTrpcSplatRoute,
 }
 export const routeTree = rootRouteImport
@@ -113,10 +210,11 @@ export const routeTree = rootRouteImport
   ._addFileTypes<FileRouteTypes>()
 
 import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
+import type { startInstance } from './start.ts'
 declare module '@tanstack/react-start' {
   interface Register {
     ssr: true
     router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
   }
 }

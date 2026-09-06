@@ -9,6 +9,60 @@ pnpm install
 pnpm start
 ```
 
+# Signing in
+
+The site is behind Snow College sign-in (Keycloak at engineering.snow.edu),
+using **the same client id as tools.snowse.io** (`snowse-tools`). That client is
+public — PKCE, no client secret — so the only secret this app holds is
+`SESSION_SECRET`, which seals the session cookie.
+
+Anyone Keycloak authenticates whose e-mail is under `snow.edu` or
+`students.snow.edu` gets in. Anyone else is turned away at `/auth/denied`.
+Change `ALLOWED_EMAIL_DOMAINS` in `docker-compose.yml` to adjust that.
+
+## Before the first deploy
+
+Reusing the tools client still needs one change in Keycloak: that client's
+**Valid redirect URIs** must include
+
+    https://courseheatmap.snowse.io/auth/callback
+
+Without it Keycloak refuses every sign-in with `Invalid parameter: redirect_uri`
+and the site is unusable, because the gate sends everyone to Keycloak. Add the
+URI first, then deploy.
+
+## How it is wired
+
+| File | Role |
+|---|---|
+| `src/start.ts` | Registers the gate. TanStack Start picks this filename up automatically. |
+| `src/auth/middleware.ts` | The gate itself — one global request middleware. |
+| `src/auth/oidc.ts` | The Keycloak handshake (PKCE, state, userinfo). No dependencies. |
+| `src/auth/session.ts` | The sealed session cookie, 12 hour lifetime. |
+| `src/auth/config.ts` | Environment, and the allowed-domain check. |
+| `src/routes/auth.*.tsx` | `/auth/login`, `/auth/callback`, `/auth/logout`, `/auth/denied`. |
+
+The gate is global request middleware rather than a check on each route or each
+server function. That matters: server functions are ordinary HTTP endpoints, so
+gating only the page render would leave all 27 of them callable by anyone with
+the URL. Because the check sits in front of everything, a server function added
+later is protected without anyone remembering to protect it.
+
+`src/auth/oidc.ts` is deliberately dependency-free. An OIDC library would have
+meant re-resolving `pnpm-lock.yaml`, and since this project depends on
+`nitro: "latest"` that drags an upgrade of the (alpha) server stack along with
+it. Nothing risky is hand-rolled to avoid it: PKCE and `state` come from
+`node:crypto`, and the identity is read from Keycloak's userinfo endpoint over
+TLS rather than by parsing an id_token, so there is no signature checking to get
+wrong. tools.snowse.io and passwordreset.snowse.io read userinfo too.
+
+## Local development
+
+`pnpm dev` with no `OIDC_ISSUER` set runs signed in as a fake local user, so you
+do not need Keycloak to work on the UI. That bypass is keyed on Vite's `DEV`
+flag, which is compiled to `false` in the production build — there is no
+environment variable that can switch authentication off in a real deployment.
+
 # Building For Production
 
 To build this application for production:

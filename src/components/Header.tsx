@@ -5,8 +5,9 @@ import { FormSelect } from './form/FormSelect'
 import { Modal } from './Modal'
 import { RefreshCourses } from './RefreshCourses'
 import { useQueryClient } from '@tanstack/react-query'
+import type { SessionUser } from '../auth/session'
 
-export const Header = () => {
+export const Header = ({ user }: { user: SessionUser }) => {
   const queryClient = useQueryClient()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const { selectedTerm, setSelectedTerm, termOptions } = useTerm()
@@ -65,6 +66,17 @@ export const Header = () => {
               >
                 Refresh Courses
               </button>
+              <div className="flex flex-col items-end leading-tight">
+                <span className="text-xs text-slate-400" title={user.email}>
+                  {user.name ?? user.email}
+                </span>
+                <a
+                  href="/auth/logout"
+                  className="text-xs font-medium text-blue-300 transition-colors hover:text-blue-100"
+                >
+                  Sign out
+                </a>
+              </div>
             </div>
           </div>
         </div>

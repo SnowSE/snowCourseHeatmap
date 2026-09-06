@@ -1,3 +1,11 @@
+# Shared with the otel stack so telemetry never leaves the host. Created by
+# /home/jonathan/otel/prod.sh; declared external here so this stack does not
+# own its lifetime.
+networks:
+  otel:
+    name: otel
+    external: true
+
 services:
   course-heatmap:
     build:
@@ -6,9 +14,30 @@ services:
     environment:
       - NODE_ENV=production
       - DATABASE_PATH=/app/storage/app.db
+      # Page views and traces go to otel.snowse.io. This site has no login, so
+      # its events say how much it is used, not by whom -- see otel.mjs.
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+      - OTEL_SERVICE_NAME=snowse-heatmap
+      - OTEL_ENVIRONMENT=prod
+      # Login, via the same Keycloak realm and the same client id as
+      # tools.snowse.io. That client is public (PKCE, no secret), so the only
+      # secret here is SESSION_SECRET, which seals the session cookie.
+      - OIDC_ISSUER=https://engineering.snow.edu/auth/realms/SnowCollege
+      - OIDC_CLIENT_ID=snowse-tools
+      - OIDC_REDIRECT_URI=https://courseheatmap.snowse.io/auth/callback
+      - OIDC_IDP_HINT=snowcollege
+      # Who gets in once Keycloak has vouched for them. Anyone outside these
+      # domains is turned away at /auth/denied.
+      - ALLOWED_EMAIL_DOMAINS=snow.edu,students.snow.edu
+      - SESSION_SECRET=${SESSION_SECRET:?set SESSION_SECRET in .env}
     volumes:
       - ./storage:/app/storage
     restart: unless-stopped
+    networks:
+      # "default" must be listed explicitly: naming any network opts the
+      # service out of joining the default one.
+      - default
+      - otel
 
   cloudflare-tunnel:
     image: cloudflare/cloudflared

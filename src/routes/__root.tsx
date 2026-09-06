@@ -10,6 +10,7 @@ import { TanStackDevtools } from '@tanstack/react-devtools'
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 import { TermProvider } from '../contexts/TermContext'
 import { Header } from '../components/Header'
+import { getSessionUser } from '../auth/user'
 
 import appCss from '../styles.css?url'
 import type { QueryClient } from '@tanstack/react-query'
@@ -41,16 +42,29 @@ export const Route = createRootRouteWithContext<{
     ],
   }),
 
+  // Access is already decided by the request middleware before any of this
+  // runs. The user is loaded here only so the header can show who is signed in.
+  loader: () => getSessionUser(),
+
   component: RootComponent,
   shellComponent: RootDocument,
 })
 
 function RootComponent() {
+  const user = Route.useLoaderData()
+
+  // The "no access" page is the one route that renders without a session, so it
+  // must not be wrapped in TermProvider -- that provider loads courses, and the
+  // request for them would be refused.
+  if (!user) {
+    return <Outlet />
+  }
+
   return (
     <TermProvider>
       <div className="h-screen bg-linear-30 from-slate-900 via-slate-800 to-slate-900 p-4 text-slate-200 flex flex-col">
         <div>
-          <Header />
+          <Header user={user} />
         </div>
         <div className="flex-1 min-h-0">
           <Outlet />
