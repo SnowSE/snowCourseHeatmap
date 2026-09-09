@@ -15,7 +15,26 @@ const config = defineConfig({
       projects: ['./tsconfig.json'],
     }),
     tailwindcss(),
-    tanstackStart(),
+    tanstackStart({
+      serverFns: {
+        // A server function's id appears in the request path, and otel.mjs
+        // derives the telemetry event name from that path. The default id is a
+        // content hash, so every action reached the dashboard looking like
+        // "heatmap.data.60742741eb0f602598c75a72112f5909..." -- telemetry you
+        // pay for and cannot read. Naming them after the file and function
+        // turns the same data into "heatmap.data.useStudentSchedules-createStudentSchedule".
+        //
+        // The filename is part of the id because several hooks export the same
+        // function name (createChangeGroup, deleteChangeGroup, renameChangeGroup,
+        // getAllChangeGroups all appear twice) and ids have to be unique.
+        generateFunctionId: ({ filename, functionName }) => {
+          const file = filename
+            .replace(/^.*[\\/]/, '')
+            .replace(/\.[cm]?[jt]sx?$/, '')
+          return `${file}-${functionName}`.replace(/[^\w-]/g, '')
+        },
+      },
+    }),
     viteReact(),
   ],
 })
