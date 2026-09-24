@@ -29,9 +29,6 @@ export const EditStudentScheduleName: React.FC<{
           }
         }}
         label="Schedule Name"
-        className="flex-1 rounded-lg border border-slate-200/20 bg-slate-200/10 
-                  px-3 pt-5 pb-2 text-slate-50 text-sm
-                  focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
         autoFocus
       />
       <button

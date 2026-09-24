@@ -8,7 +8,7 @@ const TermContext = createContext<{
   availableTerms: string[]
 }>({
   selectedTerm: '',
-  setSelectedTerm: function (term: string): void {
+  setSelectedTerm: function (): void {
     throw new Error('Function not implemented.')
   },
   termOptions: [],

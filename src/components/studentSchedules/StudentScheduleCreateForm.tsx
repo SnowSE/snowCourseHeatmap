@@ -27,10 +27,6 @@ export const StudentScheduleCreateForm = ({
           label="Schedule Name"
           required
           autoFocus
-          className="w-full rounded-lg 
-                     border border-slate-200/20 bg-slate-200/10 
-                     px-4 pt-5 pb-2 text-slate-50 
-                     focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
         />
 
         <button
