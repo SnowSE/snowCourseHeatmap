@@ -145,8 +145,26 @@ export const refreshCourses = createServerFn()
         body: JSON.stringify(body),
       },
     )
+    // my.snow.edu answers an expired or wrong token with an error object, which
+    // used to reach the course schema and surface as an unreadable ZodError.
+    if (response.status === 401 || response.status === 403) {
+      throw new Error(
+        'my.snow.edu rejected the auth token. It has probably expired; copy a fresh one and try again.',
+      )
+    }
+    if (!response.ok) {
+      throw new Error(
+        `my.snow.edu could not load sections for ${term} (HTTP ${response.status}).`,
+      )
+    }
     const coursesData = await response.json()
-    const validatedCourses = z.array(CourseSchema).parse(coursesData)
+    const parsed = z.array(CourseSchema).safeParse(coursesData)
+    if (!parsed.success) {
+      throw new Error(
+        'my.snow.edu returned something other than a list of sections. The auth token may be expired or wrong.',
+      )
+    }
+    const validatedCourses = parsed.data
 
     await updateCoursesInDatabase(term, validatedCourses)
 

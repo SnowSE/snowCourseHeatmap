@@ -138,14 +138,20 @@ console.log("Auth token copied to clipboard");`
 
         <button
           type="submit"
-          className="rounded-lg bg-blue-800/50 px-5 py-3 font-semibold text-blue-100 
+          disabled={refreshMutation.isPending}
+          className="rounded-lg bg-blue-800/50 px-5 py-3 font-semibold text-blue-100
                     transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:bg-blue-500/50
                     text-nowrap
           "
         >
-          Refresh Courses
+          {refreshMutation.isPending ? 'Refreshing…' : 'Refresh Courses'}
         </button>
       </form>
+      {refreshMutation.error && (
+        <p role="alert" className="mt-2 text-sm text-red-300">
+          {refreshMutation.error.message}
+        </p>
+      )}
     </div>
   )
 }
